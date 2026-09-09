@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE PURPLE ROOM - Party Billing</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f1f8;color:#222}
+header{background:#4b176d;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:25px} header span{font-size:13px;opacity:.85}
+.container{max-width:1200px;margin:20px auto;padding:0 16px}
+h2{margin:10px 0 14px}.section{background:white;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 3px 12px #00000012}
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.table-btn{border:0;border-radius:12px;padding:16px 8px;font-size:17px;font-weight:bold;cursor:pointer;background:#eee}
+.table-btn.premium{border-left:5px solid #7b1fa2}.table-btn.standard{border-left:5px solid #1976d2}
+.table-btn.running{background:#fff0c2;border-left-color:#f57c00}
+.small{font-size:12px;font-weight:normal;display:block;margin-top:5px}
+.hidden{display:none}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+.row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.add{background:#4b176d;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
+.bill{border-collapse:collapse;width:100%;margin-top:12px}.bill th,.bill td{border-bottom:1px solid #ddd;padding:9px;text-align:left}
+.total{text-align:right;font-size:22px;font-weight:bold;margin-top:15px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.actions button{border:0;border-radius:8px;padding:11px 16px;cursor:pointer}
+.primary{background:#4b176d;color:#fff}.green{background:#188038;color:#fff}.gray{background:#ddd}.blue{background:#1976d2;color:#fff}
+.back{margin-bottom:12px}
+@media(max-width:750px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr 80px 90px auto}header{padding:15px}.section{padding:13px}}
+
+/* THERMAL PRINTER & PDF PRINT FORMAT (80mm) */
+@media print{
+  body{background:#fff;color:#000;font-family:'Courier New',monospace;font-size:12px;margin:0;padding:0}
+  header,.back,.no-print,#cloudSetup,#cloudStatus,button{display:none!important}
+  .container{max-width:100%;margin:0;padding:0}
+  .section{box-shadow:none;padding:0;margin:0;border-radius:0}
+  .grid{display:block}
+  .print-head{border-bottom:1px dashed #000;padding-bottom:5px;margin-bottom:8px;text-align:center}
+  .print-head h2{font-size:18px;color:#000;margin:0}
+  .print-meta{font-size:10px;margin-top:5px;display:block;text-align:left}
+  .bill th, .bill td{padding:4px 0;font-size:11px;border-bottom:1px dashed #ccc}
+  .total{font-size:16px;text-align:right;margin-top:10px;border-top:1px solid #000;padding-top:5px}
+  @page{size:80mm auto;margin:2mm}
+}
+
+.hint{color:#666;font-size:13px;margin-top:-5px}.menu-list{margin-top:12px;display:grid;gap:7px}
+.menu-row{display:grid;grid-template-columns:1fr 120px auto;gap:8px;align-items:center;padding:9px;border:1px solid #eee;border-radius:8px}
+.menu-row button{border:0;border-radius:7px;padding:7px 10px;cursor:pointer}
+@media(max-width:750px){.menu-row{grid-template-columns:1fr 90px auto}}
+
+.charge-row{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center}
+
+.print-head{text-align:center;border-bottom:2px solid #4b176d;padding-bottom:10px;margin-bottom:12px}
+.print-head h2{margin:0;color:#4b176d;font-size:24px}.print-head>div{margin-top:4px}
+.print-meta{display:flex;justify-content:space-between;font-size:12px;margin-top:10px}
+@media screen{.print-head{background:#faf7fc;padding:12px;border-radius:10px}}
+
+.report-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:15px 0}
+.report-cards>div{background:#faf7fc;border:1px solid #e5dcef;border-radius:10px;padding:14px;text-align:center}
+.report-cards span{display:block;color:#666;font-size:12px;margin-bottom:6px}.report-cards b{font-size:20px;color:#4b176d}
+@media(max-width:750px){.report-cards{grid-template-columns:repeat(2,1fr)}}
+
+.detail-head{text-align:center;border-bottom:2px solid #4b176d;padding-bottom:10px;margin-bottom:12px}
+.detail-head h2{margin:0;color:#4b176d}.detail-meta{display:flex;justify-content:space-between;font-size:12px;margin-top:8px}
+
+#editModal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99}
+#editModal.hidden{display:none}.edit-box{width:min(420px,92vw);margin:0}
+.table-btn .amount{font-size:12px;margin-top:4px;display:block;color:#555}
+</style>
+</head>
+<body>
+<div id="cloudSetup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;max-width:520px;width:100%;border-radius:14px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <h2 style="margin-top:0">☁️ Cloud Database Setup</h2>
+    <p style="color:#555">Laptop aur mobile me same bills dikhane ke liye Supabase database connect karo.</p>
+    <label>Supabase Project URL</label>
+    <input id="sbUrl" style="width:100%;padding:10px;margin:6px 0 12px" placeholder="https://xxxx.supabase.co">
+    <label>Supabase Anon Key</label>
+    <input id="sbKey" style="width:100%;padding:10px;margin:6px 0 12px" placeholder="eyJ...">
+    <div style="display:flex;gap:10px">
+      <button onclick="saveCloudConfig()" style="padding:10px 14px">Save & Connect</button>
+      <button onclick="initCloud(true)" style="padding:10px 14px">Test Connection</button>
+      <button onclick="document.getElementById('cloudSetup').style.display='none'" style="padding:10px 14px">Cancel</button>
+    </div>
+    <p id="cloudMsg" style="font-size:13px;color:#666;margin-bottom:0"></p>
+  </div>
+</div>
+
+<div style="position:fixed;right:14px;top:14px;z-index:1000">
+  <button onclick="openCloudSetup()" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;background:#fff">☁️ Cloud Database</button>
+  <span id="cloudStatus" style="display:block;text-align:center;font-size:11px;color:#666;margin-top:3px">Local mode</span>
+</div>
+
+<header><h1>THE PURPLE ROOM</h1><span>Party Billing System</span></header>
+
+<div class="container">
+<div id="home">
+<div class="section no-print">
+  <div class="actions">
+    <button class="primary" onclick="showReports()">📊 Daily Report</button>
+    <button class="green" onclick="showClosing()">🔒 Party Closing</button>
+    <button class="gray" onclick="resetAllData()">Reset Demo Data</button>
+  </div>
+</div>
+<div id="menuSection" class="section">
+  <h2>🍽️ Item Master</h2>
+  <p class="hint">Yahan item aur uska fixed rate ek baar add karo. Billing me item search/select karte hi rate automatically aa jayega.</p>
+  <div class="row no-print">
+    <input id="newItemName" placeholder="Item name (e.g. Paneer Tikka)">
+    <input id="newItemRate" type="number" min="0" placeholder="Rate">
+    <button class="add" onclick="addMenuItem()">Add Item</button>
+  </div>
+  <div id="menuList" class="menu-list"></div>
+</div>
+
+  <div class="section">
+    <h2>🟣 Premium Guest — R1 to R8</h2>
+    <div id="premium" class="tables"></div>
+  </div>
+  <div class="section">
+    <h2>🔵 Standard Guest — S1 to S20</h2>
+    <div id="standard" class="tables"></div>
+  </div>
+</div>
+
+<div id="reports" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideReports()">← Back to Tables</button>
+    <h2>📊 Daily Sales Report</h2>
+    <div class="report-cards">
+      <div><span>Total Bills</span><b id="rBills">0</b></div>
+      <div><span>Total Sales</span><b>₹ <span id="rSales">0.00</span></b></div>
+      <div><span>Cash</span><b>₹ <span id="rCash">0.00</span></b></div>
+      <div><span>UPI</span><b>₹ <span id="rUpi">0.00</span></b></div>
+      <div><span>Card</span><b>₹ <span id="rCard">0.00</span></b></div>
+    </div>
+    <h3>Bill List</h3>
+    <table class="bill">
+      <thead><tr><th>Bill No</th><th>Table</th><th>Guest</th><th>Payment</th><th>Total</th><th class="no-print">Action</th></tr></thead>
+      <tbody id="reportRows"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="closing" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideClosing()">← Back to Tables</button>
+    <h2>🔒 Party Closing Report</h2>
+    <p>Payment aur table-wise final collection ka summary.</p>
+    <div class="report-cards">
+      <div><span>Total Bills</span><b id="cBills">0</b></div>
+      <div><span>Total Sales</span><b>₹ <span id="cSales">0.00</span></b></div>
+      <div><span>Cash</span><b>₹ <span id="cCash">0.00</span></b></div>
+      <div><span>UPI</span><b>₹ <span id="cUpi">0.00</span></b></div>
+      <div><span>Card</span><b>₹ <span id="cCard">0.00</span></b></div>
+    </div>
+    <table class="bill">
+      <thead><tr><th>Table</th><th>Bill No</th><th>Payment</th><th>Total</th><th class="no-print">Action</th></tr></thead>
+      <tbody id="closingRows"></tbody>
+    </table>
+    <div class="actions no-print"><button class="primary" onclick="window.print()">🖨 Print Closing Report</button></div>
+  </div>
+</div>
+
+<div id="billDetail" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideBillDetail()">← Back</button>
+    <div id="detailContent"></div>
+    <div class="actions no-print">
+      <button class="primary" onclick="window.print()">🖨 Reprint Thermal Bill</button>
+      <button class="blue" onclick="exportPDF()">📄 Download PDF</button>
+      <button class="gray" onclick="hideBillDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="editModal" class="hidden">
+  <div class="section edit-box">
+    <h2>🔐 Edit Bill</h2>
+    <p>Bill edit karne ke liye password enter karo.</p>
+    <input id="editPassword" type="password" placeholder="Password">
+    <div class="actions no-print">
+      <button class="primary" onclick="verifyEdit()">Unlock & Edit</button>
+      <button class="gray" onclick="closeEdit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="billing" class="hidden">
+  <button class="back gray" onclick="goHome()">← Back to Tables</button>
+  <div class="grid">
+    <div class="section">
+      <div class="print-head">
+        <h2>THE PURPLE ROOM</h2>
+        <div>PARTY BILL / RECEIPT</div>
+        <div class="print-meta">
+          <span>Bill No: <b id="printBillNo">-</b></span><br>
+          <span>Date: <b id="printDate">-</b> | Time: <b id="printTime">-</b></span>
+        </div>
+      </div>
+      <h2 id="tableTitle"></h2>
+      <div class="row no-print">
+        <input id="item" list="itemOptions" placeholder="Search / select item" oninput="autoRate()">
+        <datalist id="itemOptions"></datalist>
+        <input id="qty" type="number" min="1" value="1" placeholder="Qty">
+        <input id="rate" type="number" min="0" value="0" placeholder="Rate" readonly>
+        <button class="add" onclick="addItem()">Add</button>
+      </div>
+      <table class="bill">
+        <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th class="no-print"></th></tr></thead>
+        <tbody id="items"></tbody>
+      </table>
+      <div class="total">Grand Total: ₹ <span id="total">0.00</span></div>
+      <div class="actions no-print">
+        <button class="primary" onclick="saveBill()">Save Bill</button>
+        <button class="gray" onclick="window.print()">🖨 Print Thermal</button>
+        <button class="blue" onclick="exportPDF()">📄 Save PDF</button>
+        <button class="gray" onclick="clearBill()">Clear Bill</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Payment</h2>
+      <label>Payment Mode</label>
+      <select id="payment"><option>Cash</option><option>UPI</option><option>Card</option></select>
+      <br><br>
+      <label>Guest / Party Name (optional)</label>
+      <input id="guest" placeholder="Name">
+      <br><br>
+      <label>Discount</label>
+      <div class="charge-row"><input id="discount" type="number" min="0" value="0" oninput="render()"><select id="discountType" onchange="render()"><option value="amount">₹ Amount</option><option value="percent">% Percent</option></select></div>
+      <br>
+      <label>GST</label>
+      <div class="charge-row"><input id="gst" type="number" min="0" value="0" oninput="render()"><span>%</span></div>
+      <br>
+      <p><b>Subtotal:</b> ₹ <span id="subtotal">0.00</span></p>
+      <p><b>Discount:</b> ₹ <span id="discountValue">0.00</span></p>
+      <p><b>GST:</b> ₹ <span id="gstValue">0.00</span></p>
+      <p><b>Status:</b> <span id="status">Available</span></p>
+      <p><b>Bill No:</b> <span id="billNo">-</span></p>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const data=JSON.parse(localStorage.getItem('purpleRoomBills')||'{}');
+let current=null;
+let menu=JSON.parse(localStorage.getItem('purpleRoomMenu')||'null') || [
+  {name:'Tea',rate:30},{name:'Coffee',rate:50},{name:'Water Bottle',rate:30}
+];
+
+function saveMenu(){localStorage.setItem('purpleRoomMenu',JSON.stringify(menu));}
+function renderMenu(){
+  const list=document.getElementById('menuList'), opts=document.getElementById('itemOptions');
+  list.innerHTML=''; opts.innerHTML='';
+  menu.forEach((x,i)=>{
+    const o=document.createElement('option'); o.value=x.name; opts.appendChild(o);
+    const row=document.createElement('div'); row.className='menu-row';
+    row.innerHTML=`<b>${escapeHtml(x.name)}</b><span>₹ ${Number(x.rate).toFixed(2)}</span><button onclick="deleteMenuItem(${i})">Delete</button>`;
+    list.appendChild(row);
+  });
+}
+function addMenuItem(){
+  const name=document.getElementById('newItemName').value.trim();
+  const rate=Number(document.getElementById('newItemRate').value);
+  if(!name || rate<0){alert('Item name aur rate sahi bharo.');return}
+  const existing=menu.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  if(existing){existing.rate=rate}else menu.push({name,rate});
+  saveMenu(); renderMenu();
+  document.getElementById('newItemName').value='';document.getElementById('newItemRate').value='';
+  alert('Item aur rate save ho gaya!');
+}
+function deleteMenuItem(i){
+  if(confirm('Is item ko menu se delete karna hai?')){menu.splice(i,1);saveMenu();renderMenu();}
+}
+function autoRate(){
+  const name=document.getElementById('item').value.trim().toLowerCase();
+  const found=menu.find(x=>x.name.toLowerCase()===name);
+  document.getElementById('rate').value=found ? found.rate : '';
+}
+
+function calculateTotal(t){
+  let subtotal=t.items.reduce((s,x)=>s+(x.qty*x.rate),0);
+  let d=Number(t.discount||0);
+  let discount=t.discountType==='percent'?subtotal*d/100:d;
+  discount=Math.min(Math.max(discount,0),subtotal);
+  return (subtotal-discount)+((subtotal-discount)*Number(t.gst||0)/100);
+}
+function showReports(){
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('reports').classList.remove('hidden');
+  const rows=document.getElementById('reportRows');rows.innerHTML='';
+  let bills=0,sales=0,cash=0,upi=0,card=0;
+  Object.keys(data).forEach(id=>{
+    const t=data[id];
+    if(t.billNo && t.billNo!=='-' && t.items.length){
+      const total=calculateTotal(t); bills++; sales+=total;
+      if(t.payment==='Cash')cash+=total; else if(t.payment==='UPI')upi+=total; else if(t.payment==='Card')card+=total;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${escapeHtml(t.billNo)}</td><td>${id}</td><td>${escapeHtml(t.guest||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button onclick="viewBill('${id}')">View / Reprint</button> <button onclick="editBill('${id}')">Edit</button></td>`;
+      rows.appendChild(tr);
+    }
+  });
+  document.getElementById('rBills').textContent=bills;
+  document.getElementById('rSales').textContent=sales.toFixed(2);
+  document.getElementById('rCash').textContent=cash.toFixed(2);
+  document.getElementById('rUpi').textContent=upi.toFixed(2);
+  document.getElementById('rCard').textContent=card.toFixed(2);
+}
+function hideReports(){document.getElementById('reports').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
+function showClosing(){
+  document.getElementById('home').classList.add('hidden');document.getElementById('closing').classList.remove('hidden');
+  const rows=document.getElementById('closingRows');rows.innerHTML='';
+  let bills=0,sales=0,cash=0,upi=0,card=0;
+  Object.keys(data).forEach(id=>{
+    const t=data[id];
+    if(t.items && t.items.length){
+      const total=calculateTotal(t);bills++;sales+=total;
+      if(t.payment==='Cash')cash+=total;else if(t.payment==='UPI')upi+=total;else if(t.payment==='Card')card+=total;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${id}</td><td>${escapeHtml(t.billNo||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button onclick="viewBill('${id}')">View</button></td>`;
+      rows.appendChild(tr);
+    }
+  });
+  document.getElementById('cBills').textContent=bills;document.getElementById('cSales').textContent=sales.toFixed(2);
+  document.getElementById('cCash').textContent=cash.toFixed(2);document.getElementById('cUpi').textContent=upi.toFixed(2);document.getElementById('cCard').textContent=card.toFixed(2);
+}
+function hideClosing(){document.getElementById('closing').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
+function viewBill(id){
+  const t=data[id];if(!t)return;
+  document.getElementById('reports').classList.add('hidden');document.getElementById('closing').classList.add('hidden');document.getElementById('home').classList.add('hidden');
+  document.getElementById('billDetail').classList.remove('hidden');
+  let subtotal=t.items.reduce((s,x)=>s+x.qty*x.rate,0);
+  let d=Number(t.discount||0),discount=t.discountType==='percent'?subtotal*d/100:d;discount=Math.min(Math.max(discount,0),subtotal);
+  let taxable=subtotal-discount,gst=taxable*Number(t.gst||0)/100,total=taxable+gst;
+  const when=t.createdAt?new Date(t.createdAt):new Date();
+  let rows=t.items.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${(x.qty*x.rate).toFixed(2)}</td></tr>`).join('');
+  document.getElementById('detailContent').innerHTML=`<div class="detail-head"><h2>THE PURPLE ROOM</h2><div>PARTY BILL / RECEIPT</div><div class="detail-meta"><span>Bill: <b>${escapeHtml(t.billNo)}</b></span><span>Table: <b>${id}</b></span><span>${when.toLocaleString('en-IN')}</span></div></div><p><b>Guest:</b> ${escapeHtml(t.guest||'-')} &nbsp; <b>Payment:</b> ${escapeHtml(t.payment||'-')}</p><table class="bill"><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><p style="text-align:right">Subtotal: ₹ ${subtotal.toFixed(2)}<br>Discount: ₹ ${discount.toFixed(2)}<br>GST: ₹ ${gst.toFixed(2)}<br><strong style="font-size:20px">Grand Total: ₹ ${total.toFixed(2)}</strong></p>`;
+}
+function hideBillDetail(){document.getElementById('billDetail').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
+
+function exportPDF(){
+  alert("Generating PDF... Print window open hone par 'Save as PDF' select karke Save karein.");
+  window.print();
+}
+
+function resetAllData(){
+  if(!confirm('Demo billing data reset karna hai?'))return;
+  Object.keys(data).forEach(id=>data[id]={items:[],status:'Available',billNo:'-'});
+  localStorage.removeItem('purpleRoomBills');
+  Object.keys(data).forEach(refreshButton);
+  alert('All table billing data reset ho gaya.');
+}
+
+const EDIT_PASSWORD='930239';
+let pendingEditTable=null;
+
+function editBill(id){
+  pendingEditTable=id;
+  document.getElementById('editPassword').value='';
+  document.getElementById('editModal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('editPassword').focus(),50);
+}
+function verifyEdit(){
+  if(document.getElementById('editPassword').value!==EDIT_PASSWORD){
+    alert('Wrong password. Bill edit nahi ho sakta.');
+    return;
+  }
+  const id=pendingEditTable;
+  closeEdit();
+  openTable(id);
+}
+function closeEdit(){
+  pendingEditTable=null;
+  document.getElementById('editModal').classList.add('hidden');
+}
+
+function makeTables(){
+  for(let i=1;i<=8;i++) addTable('R'+i,'premium');
+  for(let i=1;i<=20;i++) addTable('S'+i,'standard');
+}
+function addTable(id,type){
+  data[id]=data[id]||{items:[],status:'Available',billNo:'-'};
+  const b=document.createElement('button'); b.id='btn-'+id; b.className='table-btn '+type;
+  b.onclick=()=>openTable(id); b.innerHTML=id+'<span class="small">'+data[id].status+'</span>';
+  document.getElementById(type).appendChild(b);
+  refreshButton(id);
+}
+function refreshButton(id){
+  const b=document.getElementById('btn-'+id);
+  const t=data[id]||{items:[],status:'Available'};
+  const amount=t.items&&t.items.length?calculateTotal(t):0;
+  b.className='table-btn '+(id[0]=='R'?'premium':'standard')+' '+(t.status=='Running'?'running':'');
+  b.innerHTML=id+'<span class="small">'+t.status+'</span>'+(amount?`<span class="amount">₹ ${amount.toFixed(2)}</span>`:'');
+}
+
+function updatePrintDate(){
+  const d=new Date();
+  const date=d.toLocaleDateString('en-IN');
+  const time=d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('printDate').textContent=date;
+  document.getElementById('printTime').textContent=time;
+}
+
+function openTable(id){
+  current=id;
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('billing').classList.remove('hidden');
+  document.getElementById('tableTitle').textContent='Table '+id+' — Billing';
+  document.getElementById('guest').value=data[id].guest||'';
+  document.getElementById('payment').value=data[id].payment||'Cash';
+  document.getElementById('discount').value=data[id].discount||0;
+  document.getElementById('discountType').value=data[id].discountType||'amount';
+  document.getElementById('gst').value=data[id].gst||0;
+  document.getElementById('billNo').textContent=data[id].billNo||'-';
+  document.getElementById('printBillNo').textContent=data[id].billNo||'-';
+  updatePrintDate();
+  render();
+}
+function render(){
+  const tbody=document.getElementById('items');tbody.innerHTML='';
+  let subtotal=0;
+  data[current].items.forEach((x,i)=>{
+    const amount=x.qty*x.rate;subtotal+=amount;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${amount.toFixed(2)}</td><td class="no-print"><button onclick="removeItem(${i})">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  const discountInput=Number(document.getElementById('discount')?.value||0);
+  const discountType=document.getElementById('discountType')?.value||'amount';
+  const discountValue=discountType==='percent' ? subtotal*discountInput/100 : discountInput;
+  const safeDiscount=Math.min(Math.max(discountValue,0),subtotal);
+  const taxable=Math.max(subtotal-safeDiscount,0);
+  const gstRate=Number(document.getElementById('gst')?.value||0);
+  const gstValue=taxable*gstRate/100;
+  const grand=taxable+gstValue;
+  document.getElementById('subtotal').textContent=subtotal.toFixed(2);
+  document.getElementById('discountValue').textContent=safeDiscount.toFixed(2);
+  document.getElementById('gstValue').textContent=gstValue.toFixed(2);
+  document.getElementById('total').textContent=grand.toFixed(2);
+  document.getElementById('status').textContent=data[current].status;
+}
+function addItem(){
+  const name=document.getElementById('item').value.trim(),qty=Number(document.getElementById('qty').value),rate=Number(document.getElementById('rate').value);
+  if(!name||qty<=0||rate<0){alert('Item, quantity aur rate sahi bharo.');return}
+  data[current].items.push({name,qty,rate});
+  data[current].status='Running';
+  localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+  refreshButton(current);render();
+  document.getElementById('item').value='';document.getElementById('qty').value=1;document.getElementById('rate').value=0;document.getElementById('item').focus();
+}
+function removeItem(i){
+  data[current].items.splice(i,1);
+  if(data[current].items.length===0){
+    data[current].status='Available';
+  }
+  localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+  refreshButton(current);
+  render();
+}
+
+function saveBill(){
+  if(!data[current].items.length){
+    alert('Bill me koi item nahi hai!');
+    return;
+  }
+  data[current].guest=document.getElementById('guest').value.trim();
+  data[current].payment=document.getElementById('payment').value;
+  data[current].discount=Number(document.getElementById('discount').value||0);
+  data[current].discountType=document.getElementById('discountType').value;
+  data[current].gst=Number(document.getElementById('gst').value||0); 
+  data[current].createdAt=data[current].createdAt||new Date().toISOString();
+  if(data[current].billNo==='-') data[current].billNo='PR-'+Date.now().toString().slice(-6);
+  
+  data[current].status='Running';
+  
+  localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+  refreshButton(current);
+  document.getElementById('billNo').textContent=data[current].billNo;
+  document.getElementById('printBillNo').textContent=data[current].billNo;
+  document.getElementById('status').textContent=data[current].status;
+  updatePrintDate();
+}
+
+function clearBill(){
+  if(confirm('Is table ka bill clear karna hai?')){
+    data[current]={items:[],status:'Available',billNo:'-'};
+    localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+    refreshButton(current);
+    render();
+    document.getElementById('billNo').textContent='-';
+    document.getElementById('printBillNo').textContent='-';
+  }
+}
+function goHome(){document.getElementById('billing').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+makeTables();
+renderMenu();
+
+// ===== CLOUD DATABASE =====
+const DEFAULT_CLOUD_URL='https://sgwdrxnlyjpbnojonpgd.supabase.co';
+const DEFAULT_CLOUD_KEY='sb_publishable_53YvwoAlThZUqnzW4xzU1g_AJekyjnk';
+let cloudEnabled=false;
+
+function getCloudConfig(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('purpleRoomCloud')||'{}');
+    return {url:(saved.url||DEFAULT_CLOUD_URL).replace(/\/+$/,''),key:saved.key||DEFAULT_CLOUD_KEY};
+  }catch(e){ return {url:DEFAULT_CLOUD_URL,key:DEFAULT_CLOUD_KEY}; }
+}
+function setCloudStatus(text){
+  const st=document.getElementById('cloudStatus');
+  if(st) st.textContent=text;
+}
+function setCloudMsg(text){
+  const m=document.getElementById('cloudMsg');
+  if(m) m.textContent=text;
+}
+function openCloudSetup(){
+  const c=getCloudConfig();
+  document.getElementById('sbUrl').value=c.url;
+  document.getElementById('sbKey').value=c.key;
+  setCloudMsg('');
+  document.getElementById('cloudSetup').style.display='flex';
+}
+function cloudHeaders(c){
+  return {'apikey':c.key,'Authorization':'Bearer '+c.key,'Content-Type':'application/json','Prefer':'return=representation'};
+}
+async function cloudRequest(path, options={}){
+  const c=getCloudConfig();
+  const res=await fetch(c.url+'/rest/v1/'+path,{
+    ...options,
+    headers:{...cloudHeaders(c),...(options.headers||{})}
+  });
+  const text=await res.text();
+  let body=null;
+  try{body=text?JSON.parse(text):null}catch(e){body=text}
+  if(!res.ok){
+    const msg=body && (body.message||body.error||body.hint||body.details)
+      ? [body.message,body.details,body.hint].filter(Boolean).join(' | ')
+      : (text||('HTTP '+res.status));
+    throw new Error('HTTP '+res.status+': '+msg);
+  }
+  return body;
+}
+async function initCloud(showMessage=false){
+  try{
+    const c=getCloudConfig();
+    setCloudStatus('☁️ Checking...');
+    await cloudRequest('bills?select=id&limit=1',{method:'GET'});
+    cloudEnabled=true;
+    localStorage.setItem('purpleRoomCloud',JSON.stringify(c));
+    setCloudStatus('☁️ Cloud ON');
+    if(showMessage) setCloudMsg('Connected! Supabase database reachable hai.');
+    await pullCloudData();
+    return {ok:true};
+  }catch(e){
+    cloudEnabled=false;
+    setCloudStatus('☁️ Cloud ERROR');
+    console.error('Cloud connection failed:',e);
+    if(showMessage) setCloudMsg('Connection failed: '+e.message);
+    return {ok:false,message:e.message};
+  }
+}
+async function saveCloudConfig(){
+  const url=document.getElementById('sbUrl').value.trim().replace(/\/+$/,'');
+  const key=document.getElementById('sbKey').value.trim();
+  if(!url||!key){setCloudMsg('Project URL aur publishable/anon key dono bharo.');return;}
+  localStorage.setItem('purpleRoomCloud',JSON.stringify({url,key}));
+  const r=await initCloud(true);
+  if(r.ok) setTimeout(()=>document.getElementById('cloudSetup').style.display='none',700);
+}
+async function pushCurrentBillToCloud(tableId){
+  if(!tableId||!data[tableId]) return {ok:false,message:'Table data missing'};
+  try{
+    if(!cloudEnabled){
+      const c=await initCloud(false);
+      if(!c.ok) return c;
+    }
+    const b=data[tableId];
+    const row={
+      table_id:tableId,
+      status:b.status||'Available',
+      bill_no:b.billNo&&b.billNo!=='-'?b.billNo:null,
+      bill_json:b,
+      updated_at:new Date().toISOString()
+    };
+    const existing=await cloudRequest(
+      'bills?select=id&table_id=eq.'+encodeURIComponent(tableId)+'&limit=1',
+      {method:'GET'}
+    );
+    if(Array.isArray(existing)&&existing.length){
+      await cloudRequest('bills?id=eq.'+encodeURIComponent(existing[0].id),{
+        method:'PATCH',body:JSON.stringify(row)
+      });
+    }else{
+      await cloudRequest('bills',{method:'POST',body:JSON.stringify(row)});
+    }
+    cloudEnabled=true;
+    setCloudStatus('☁️ Cloud ON');
+    return {ok:true};
+  }catch(e){
+    cloudEnabled=false;
+    setCloudStatus('☁️ Cloud ERROR');
+    console.error('Cloud save failed:',e);
+    return {ok:false,message:e.message};
+  }
+}
+async function pullCloudData(){
+  try{
+    const rows=await cloudRequest('bills?select=*&order=updated_at.desc',{method:'GET'});
+    (rows||[]).forEach(r=>{
+      if(r.table_id && r.bill_json) data[r.table_id]=r.bill_json;
+    });
+    localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+    Object.keys(data).forEach(id=>{if(document.getElementById('btn-'+id)) refreshButton(id);});
+  }catch(e){
+    console.error('Cloud pull failed:',e);
+  }
+}
+
+const originalSaveBill=saveBill;
+saveBill=async function(){
+  originalSaveBill();
+  if(!data[current].items.length) return;
+  const result=await pushCurrentBillToCloud(current);
+  if(result.ok){
+    alert('✅ Bill local + CLOUD DATABASE me save ho gaya.\nTable: '+current);
+  }else{
+    alert('⚠️ Local bill save ho gaya, CLOUD me nahi hua.\n\nReason:\n'+result.message+
+      '\n\nCloud Database button se Test Connection karo.');
+  }
+};
+
+const originalClearBill=clearBill;
+clearBill=async function(){
+  originalClearBill();
+  if(current){
+    const result=await pushCurrentBillToCloud(current);
+    if(!result.ok) alert('Local bill clear ho gaya, cloud update nahi hua: '+result.message);
+  }
+};
+
+setInterval(()=>{if(cloudEnabled) pullCloudData();},5000);
+window.addEventListener('load',()=>setTimeout(()=>initCloud(false),700));
+</script>
+</body>
+</html>
