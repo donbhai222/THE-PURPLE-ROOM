@@ -330,7 +330,7 @@ function toggleSidebar(){
   document.getElementById('overlay').classList.toggle('active');
 }
 
-const data = JSON.parse(localStorage.getItem('purpleRoomBills') || '{}');
+let data = JSON.parse(localStorage.getItem('purpleRoomBills') || '{}');
 let current = null;
 let menu = JSON.parse(localStorage.getItem('purpleRoomMenu') || 'null') || [
   {name:'Tea',rate:30},{name:'Coffee',rate:50},{name:'Water Bottle',rate:30}
@@ -649,7 +649,7 @@ function openTable(id){
   if(!data[id]) {
     data[id] = {items:[], status:'Available', billNo:'-'};
   }
-  if(!data[id].items) {
+  if(!Array.isArray(data[id].items)) {
     data[id].items = [];
   }
   document.getElementById('home').classList.add('hidden');
@@ -673,7 +673,7 @@ function render(){
   let subtotal=0;
   
   if(!data[current]) return;
-  if(!data[current].items) data[current].items = [];
+  if(!Array.isArray(data[current].items)) data[current].items = [];
 
   data[current].items.forEach((x,i)=>{
     const amount=x.qty*x.rate;
@@ -699,7 +699,7 @@ function render(){
   document.getElementById('status').textContent=data[current].status;
 }
 
-/* CORRECTED BATCH ADD ITEM */
+/* ABSOLUTE FIX: MULTI-ITEM APPEND FUNCTION */
 function addItem(){
   const nameInput = document.getElementById('item');
   const qtyInput = document.getElementById('qty');
@@ -717,31 +717,34 @@ function addItem(){
   if(!data[current]){
     data[current] = {items:[], status:'Available', billNo:'-'};
   }
-  if(!data[current].items){
+  if(!Array.isArray(data[current].items)){
     data[current].items = [];
   }
 
-  // Same item check and update quantity, else add new item line
-  const existing = data[current].items.find(x => x.name.toLowerCase() === name.toLowerCase());
+  // Check existing item inside active array
+  let existing = data[current].items.find(x => x.name.toLowerCase() === name.toLowerCase());
   if(existing){
     existing.qty += qty;
   } else {
     data[current].items.push({name: name, qty: qty, rate: rate, saved: false});
   }
 
-  // Update status locally to running
   if(data[current].status === 'Available'){
     data[current].status = 'Running';
   }
 
-  // Render UI Table immediately
+  // Save current table state to localStorage immediately so data isn't lost
+  localStorage.setItem('purpleRoomBills', JSON.stringify(data));
+
+  // Render HTML UI Table
   render();
   refreshButton(current);
   
-  // Clear inputs for next item entry without touching array
+  // Clear inputs and set cursor focus back to search
   nameInput.value = '';
   qtyInput.value = 1;
   rateInput.value = 0;
+  document.getElementById('searchResults').style.display = 'none';
   nameInput.focus();
 }
 
@@ -980,11 +983,18 @@ async function pushCurrentBillToCloud(tableId){
 async function pullCloudData(){
   try{
     const rows=await cloudRequest('bills?select=*&order=updated_at.desc',{method:'GET'});
-    (rows||[]).forEach(r=>{
-      if(r.table_id && r.bill_json) data[r.table_id]=r.bill_json;
-    });
-    localStorage.setItem('purpleRoomBills',JSON.stringify(data));
-    Object.keys(data).forEach(id=>{if(document.getElementById('btn-'+id)) refreshButton(id);});
+    if(Array.isArray(rows)){
+      rows.forEach(r=>{
+        if(r.table_id && r.bill_json) {
+          // If table is active locally with items, don't clear local un-saved items
+          if(!data[r.table_id] || !data[r.table_id].items || data[r.table_id].items.length === 0){
+             data[r.table_id]=r.bill_json;
+          }
+        }
+      });
+      localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+      Object.keys(data).forEach(id=>{if(document.getElementById('btn-'+id)) refreshButton(id);});
+    }
   }catch(e){
     console.error('Cloud pull failed:',e);
   }
@@ -1006,7 +1016,7 @@ clearBill=async function(){
   }
 };
 
-setInterval(()=>{if(cloudEnabled) pullCloudData();},5000);
+setInterval(()=>{if(cloudEnabled) pullCloudData();},10000);
 window.addEventListener('load',()=>setTimeout(()=>initCloud(false),700));
 </script>
 </body>
