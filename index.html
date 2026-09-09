@@ -6,14 +6,16 @@
 <title>THE PURPLE ROOM - Party Billing</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f1f8;color:#222}
-header{background:#4b176d;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+header{background:linear-gradient(135deg, #4b176d, #7b1fa2);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 10px rgba(0,0,0,0.15)}
 header h1{margin:0;font-size:25px} header span{font-size:13px;opacity:.85}
 .container{max-width:1200px;margin:20px auto;padding:0 16px}
 h2{margin:10px 0 14px}.section{background:white;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 3px 12px #00000012}
 .tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
-.table-btn{border:0;border-radius:12px;padding:16px 8px;font-size:17px;font-weight:bold;cursor:pointer;background:#eee}
-.table-btn.premium{border-left:5px solid #7b1fa2}.table-btn.standard{border-left:5px solid #1976d2}
-.table-btn.running{background:#fff0c2;border-left-color:#f57c00}
+.table-btn{border:0;border-radius:12px;padding:16px 8px;font-size:17px;font-weight:bold;cursor:pointer;background:#eee;transition:all 0.2s ease}
+.table-btn:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.15)}
+.table-btn.premium{border-left:5px solid #7b1fa2;background:#f3e5f5;color:#4b176d}
+.table-btn.standard{border-left:5px solid #1976d2;background:#e3f2fd;color:#0d47a1}
+.table-btn.running{background:#fff3e0;border-left-color:#ff9800;color:#e65100}
 .small{font-size:12px;font-weight:normal;display:block;margin-top:5px}
 .hidden{display:none}
 .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
@@ -21,25 +23,38 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 
 .row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
 .search-wrapper{position:relative;width:100%;grid-column:span 4}
-.search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #7b1fa2;border-radius:8px;max-height:180px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none}
+.search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid #7b1fa2;border-radius:8px;max-height:180px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none}
 .search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #eee;display:flex;justify-content:space-between;font-size:14px}
 .search-item:last-child{border-bottom:none}
 .search-item:hover, .search-item.active{background:#f0e6f6;color:#4b176d;font-weight:bold}
 
-.add{background:#4b176d;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
+/* COLOURFUL BUTTON STYLES */
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.actions button, .btn-action{border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:bold;transition:all 0.2s ease;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
+.actions button:hover, .btn-action:hover{transform:scale(1.02);opacity:0.95}
+
+.btn-report{background:linear-gradient(135deg, #1e88e5, #1565c0);color:#fff}
+.btn-closing{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
+.btn-item-master{background:linear-gradient(135deg, #e91e63, #ad1457);color:#fff}
+.btn-reset{background:linear-gradient(135deg, #ff9800, #f57c00);color:#fff}
+
+.primary{background:linear-gradient(135deg, #6a1b9a, #4a148c);color:#fff}
+.green{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
+.gray{background:linear-gradient(135deg, #78909c, #455a64);color:#fff}
+.blue{background:linear-gradient(135deg, #0288d1, #01579b);color:#fff}
+.add{background:linear-gradient(135deg, #009688, #00695c);color:white;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;font-weight:bold}
+
 .bill{border-collapse:collapse;width:100%;margin-top:12px}.bill th,.bill td{border-bottom:1px solid #ddd;padding:9px;text-align:left}
-.total{text-align:right;font-size:22px;font-weight:bold;margin-top:15px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.actions button{border:0;border-radius:8px;padding:11px 16px;cursor:pointer}
-.primary{background:#4b176d;color:#fff}.green{background:#188038;color:#fff}.gray{background:#ddd}.blue{background:#1976d2;color:#fff}
+.total{text-align:right;font-size:22px;font-weight:bold;margin-top:15px;color:#2e7d32}
 .back{margin-bottom:12px}
 
 /* ITEM MANAGE LIST STYLES */
-.item-manage-list{margin-top:15px;max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:8px}
-.item-manage-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #f0f0f0}
-.item-manage-row:last-child{border-bottom:none}
-.btn-sm{padding:4px 8px;font-size:12px;border-radius:4px;border:none;cursor:pointer;margin-left:4px}
-.btn-edit{background:#1976d2;color:white}
-.btn-del{background:#d32f2f;color:white}
+.item-manage-list{margin-top:15px;max-height:250px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;padding:8px;background:#fafafa}
+.item-manage-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#fff;margin-bottom:4px;border-radius:6px}
+.item-manage-row:last-child{border-bottom:none;margin-bottom:0}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px;border:none;cursor:pointer;margin-left:4px;font-weight:bold;color:#fff}
+.btn-edit{background:#0288d1}
+.btn-del{background:#d32f2f}
 
 @media(max-width:750px){
   .grid{grid-template-columns:1fr}
@@ -80,7 +95,7 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 
 #editModal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99}
 #editModal.hidden{display:none}.edit-box{width:min(420px,92vw);margin:0}
-.table-btn .amount{font-size:12px;margin-top:4px;display:block;color:#555}
+.table-btn .amount{font-size:12px;margin-top:4px;display:block;color:#333}
 </style>
 </head>
 <body>
@@ -93,17 +108,17 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
     <label>Supabase Anon Key</label>
     <input id="sbKey" style="width:100%;padding:10px;margin:6px 0 12px" placeholder="eyJ...">
     <div style="display:flex;gap:10px">
-      <button onclick="saveCloudConfig()" style="padding:10px 14px">Save & Connect</button>
-      <button onclick="initCloud(true)" style="padding:10px 14px">Test Connection</button>
-      <button onclick="document.getElementById('cloudSetup').style.display='none'" style="padding:10px 14px">Cancel</button>
+      <button onclick="saveCloudConfig()" class="primary" style="padding:10px 14px">Save & Connect</button>
+      <button onclick="initCloud(true)" class="blue" style="padding:10px 14px">Test Connection</button>
+      <button onclick="document.getElementById('cloudSetup').style.display='none'" class="gray" style="padding:10px 14px">Cancel</button>
     </div>
     <p id="cloudMsg" style="font-size:13px;color:#666;margin-bottom:0"></p>
   </div>
 </div>
 
 <div style="position:fixed;right:14px;top:14px;z-index:1000">
-  <button onclick="openCloudSetup()" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;background:#fff">☁️ Cloud Database</button>
-  <span id="cloudStatus" style="display:block;text-align:center;font-size:11px;color:#666;margin-top:3px">Local mode</span>
+  <button onclick="openCloudSetup()" style="padding:8px 12px;border-radius:8px;border:none;background:linear-gradient(135deg, #0288d1, #01579b);color:#fff;font-weight:bold;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">☁️ Cloud DB</button>
+  <span id="cloudStatus" style="display:block;text-align:center;font-size:11px;color:#fff;margin-top:3px;text-shadow:0 1px 2px #000">Local mode</span>
 </div>
 
 <header><h1>THE PURPLE ROOM</h1><span>Party Billing System</span></header>
@@ -112,24 +127,10 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 <div id="home">
 <div class="section no-print">
   <div class="actions">
-    <button class="primary" onclick="showReports()">📊 Daily Report</button>
-    <button class="green" onclick="showClosing()">🔒 Party Closing</button>
-    <button class="gray" onclick="resetAllData()">Reset Demo Data</button>
-  </div>
-</div>
-<div id="menuSection" class="section">
-  <h2>🍽️ Item Master (Add & Edit)</h2>
-  <p class="hint">Yahan se naye item add karein ya purane items ka naam/rate update karein.</p>
-  <div class="row no-print" style="grid-template-columns:1fr 1fr auto">
-    <input id="newItemName" placeholder="Item name">
-    <input id="newItemRate" type="number" min="0" placeholder="Rate">
-    <button class="add" onclick="addMenuItem()">Add Item</button>
-  </div>
-  
-  <button onclick="toggleManageList()" class="gray" style="margin-top:10px;font-size:13px;padding:6px 10px;cursor:pointer">✏️ Manage Existing Items List</button>
-
-  <div id="manageListContainer" class="hidden">
-    <div id="menuManageList" class="item-manage-list"></div>
+    <button class="btn-report" onclick="showReports()">📊 Daily Report</button>
+    <button class="btn-closing" onclick="showClosing()">🔒 Party Closing</button>
+    <button class="btn-item-master" onclick="showItemMaster()">🍽️ Item Master</button>
+    <button class="btn-reset" onclick="resetAllData()">↺ Reset Demo Data</button>
   </div>
 </div>
 
@@ -140,6 +141,23 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
   <div class="section">
     <h2>🔵 Standard Guest — S1 to S20</h2>
     <div id="standard" class="tables"></div>
+  </div>
+</div>
+
+<!-- ITEM MASTER SECTION -->
+<div id="itemMasterView" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideItemMaster()">← Back to Tables</button>
+    <h2>🍽️ Item Master (Manage Menu Items)</h2>
+    <p class="hint">Naye item add karein ya purane items ka name aur rate update/delete karein.</p>
+    <div class="row no-print" style="grid-template-columns:1fr 1fr auto">
+      <input id="newItemName" placeholder="Item Name (e.g. Paneer Tikka)">
+      <input id="newItemRate" type="number" min="0" placeholder="Rate (₹)">
+      <button class="add" onclick="addMenuItem()">+ Add / Update Item</button>
+    </div>
+    
+    <h3 style="margin-top:20px;">📋 Existing Items List</h3>
+    <div id="menuManageList" class="item-manage-list"></div>
   </div>
 </div>
 
@@ -222,7 +240,7 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
       
       <div class="row no-print">
         <div class="search-wrapper">
-          <input id="item" placeholder="🔍 Search item name..." oninput="searchItems()" onfocus="searchItems()" autocomplete="off">
+          <input id="item" placeholder="🔍 Bill here..." oninput="searchItems()" onfocus="searchItems()" autocomplete="off">
           <div id="searchResults" class="search-results"></div>
         </div>
         <input id="qty" type="number" min="1" value="1" placeholder="Qty">
@@ -239,7 +257,7 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
         <button class="primary" onclick="saveBill()">Save Bill</button>
         <button class="gray" onclick="window.print()">🖨 Print Thermal</button>
         <button class="blue" onclick="exportPDF()">📄 Save PDF</button>
-        <button class="gray" onclick="clearBill()">Clear Bill</button>
+        <button class="btn-reset" style="padding:11px 16px" onclick="clearBill()">Clear Bill</button>
       </div>
     </div>
 
@@ -279,6 +297,17 @@ function saveMenu(){
   renderManageList();
 }
 
+function showItemMaster(){
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('itemMasterView').classList.remove('hidden');
+  renderManageList();
+}
+
+function hideItemMaster(){
+  document.getElementById('itemMasterView').classList.add('hidden');
+  document.getElementById('home').classList.remove('hidden');
+}
+
 function addMenuItem(){
   const name=document.getElementById('newItemName').value.trim();
   const rate=Number(document.getElementById('newItemRate').value);
@@ -292,17 +321,7 @@ function addMenuItem(){
   saveMenu();
   document.getElementById('newItemName').value='';
   document.getElementById('newItemRate').value='';
-  alert('Item database me add/update ho gaya!');
-}
-
-function toggleManageList(){
-  const cont=document.getElementById('manageListContainer');
-  if(cont.classList.contains('hidden')){
-    cont.classList.remove('hidden');
-    renderManageList();
-  }else{
-    cont.classList.add('hidden');
-  }
+  alert('Item database me successfully add/update ho gaya!');
 }
 
 function renderManageList(){
@@ -310,7 +329,7 @@ function renderManageList(){
   if(!div) return;
   div.innerHTML='';
   if(!menu.length){
-    div.innerHTML='<p style="font-size:12px;color:#666">Koi item add nahi hua hai.</p>';
+    div.innerHTML='<p style="font-size:13px;color:#666">Koi item add nahi hua hai.</p>';
     return;
   }
   menu.forEach((x,index)=>{
@@ -329,7 +348,7 @@ function renderManageList(){
 
 function editMenuItem(index){
   const item=menu[index];
-  const newName=prompt("Item ka Naya Naam dalein:", item.name);
+  const newName=prompt("Item ka Naya Name dalein:", item.name);
   if(newName === null) return;
   const newRate=prompt("Item ka Naya Rate dalein:", item.rate);
   if(newRate === null) return;
@@ -342,7 +361,6 @@ function editMenuItem(index){
 
   menu[index]={name: newName.trim(), rate: parsedRate};
   saveMenu();
-  alert("Item updated successfully!");
 }
 
 function deleteMenuItem(index){
@@ -411,7 +429,7 @@ function showReports(){
       const total=calculateTotal(t); bills++; sales+=total;
       if(t.payment==='Cash')cash+=total; else if(t.payment==='UPI')upi+=total; else if(t.payment==='Card')card+=total;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${escapeHtml(t.billNo)}</td><td>${id}</td><td>${escapeHtml(t.guest||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button onclick="viewBill('${id}')">View / Reprint</button> <button onclick="editBill('${id}')">Edit</button></td>`;
+      tr.innerHTML=`<td>${escapeHtml(t.billNo)}</td><td>${id}</td><td>${escapeHtml(t.guest||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button class="btn-action primary" onclick="viewBill('${id}')">View</button> <button class="btn-action blue" onclick="editBill('${id}')">Edit</button></td>`;
       rows.appendChild(tr);
     }
   });
@@ -432,7 +450,7 @@ function showClosing(){
       const total=calculateTotal(t);bills++;sales+=total;
       if(t.payment==='Cash')cash+=total;else if(t.payment==='UPI')upi+=total;else if(t.payment==='Card')card+=total;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${id}</td><td>${escapeHtml(t.billNo||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button onclick="viewBill('${id}')">View</button></td>`;
+      tr.innerHTML=`<td>${id}</td><td>${escapeHtml(t.billNo||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button class="btn-action primary" onclick="viewBill('${id}')">View</button></td>`;
       rows.appendChild(tr);
     }
   });
@@ -537,7 +555,7 @@ function render(){
   data[current].items.forEach((x,i)=>{
     const amount=x.qty*x.rate;subtotal+=amount;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${amount.toFixed(2)}</td><td class="no-print"><button onclick="removeItem(${i})">✕</button></td>`;
+    tr.innerHTML=`<td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${amount.toFixed(2)}</td><td class="no-print"><button class="btn-sm btn-del" onclick="removeItem(${i})">✕</button></td>`;
     tbody.appendChild(tr);
   });
   const discountInput=Number(document.getElementById('discount')?.value||0);
