@@ -280,12 +280,12 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
       
       <div class="row no-print">
         <div class="search-wrapper">
-          <input id="item" placeholder="🔍 Bill here..." oninput="searchItems()" onfocus="searchItems()" onkeydown="handleSearchKey(event)" autocomplete="off">
+          <input id="item" placeholder="🔍 Search & Add Item..." oninput="searchItems()" onfocus="searchItems()" onkeydown="handleSearchKey(event)" autocomplete="off">
           <div id="searchResults" class="search-results"></div>
         </div>
         <input id="qty" type="number" min="1" value="1" placeholder="Qty">
         <input id="rate" type="number" min="0" value="0" placeholder="Rate" readonly>
-        <button class="add" onclick="addItem()">+ Add</button>
+        <button class="add" onclick="addItem()">+ Add Item</button>
       </div>
 
       <table class="bill">
@@ -454,7 +454,10 @@ function searchItems(){
 function handleSearchKey(e){
   const resultsDiv=document.getElementById('searchResults');
   const items=resultsDiv.querySelectorAll('.search-item');
-  if(!items.length || resultsDiv.style.display==='none') return;
+  if(!items.length || resultsDiv.style.display==='none'){
+    if(e.key === 'Enter') addItem();
+    return;
+  }
 
   if(e.key==='ArrowDown'){
     e.preventDefault();
@@ -472,6 +475,8 @@ function handleSearchKey(e){
     e.preventDefault();
     if(selectedSearchIndex >= 0 && items[selectedSearchIndex]){
       items[selectedSearchIndex].click();
+    } else {
+      addItem();
     }
   }
 }
@@ -674,14 +679,31 @@ function render(){
   document.getElementById('total').textContent=grand.toFixed(2);
   document.getElementById('status').textContent=data[current].status;
 }
+
+/* BATCH ADD ITEM WITHOUT AUTOSAVE */
 function addItem(){
-  const name=document.getElementById('item').value.trim(),qty=Number(document.getElementById('qty').value),rate=Number(document.getElementById('rate').value);
-  if(!name||qty<=0||rate<0){alert('Item, quantity aur rate sahi bharo.');return}
-  data[current].items.push({name,qty,rate,saved:false});
-  data[current].status='Running';
-  localStorage.setItem('purpleRoomBills',JSON.stringify(data));
-  refreshButton(current);render();
-  document.getElementById('item').value='';document.getElementById('qty').value=1;document.getElementById('rate').value=0;document.getElementById('item').focus();
+  const name=document.getElementById('item').value.trim();
+  const qty=Number(document.getElementById('qty').value);
+  const rate=Number(document.getElementById('rate').value);
+  
+  if(!name||qty<=0||rate<0){
+    alert('Item, quantity aur rate sahi bharo.');
+    return;
+  }
+
+  const existing = data[current].items.find(x => x.name.toLowerCase() === name.toLowerCase() && !x.saved);
+  if(existing){
+    existing.qty += qty;
+  } else {
+    data[current].items.push({name, qty, rate, saved: false});
+  }
+
+  render();
+  
+  document.getElementById('item').value='';
+  document.getElementById('qty').value=1;
+  document.getElementById('rate').value=0;
+  document.getElementById('item').focus();
 }
 
 /* SAVE & PRINT KOT FUNCTION */
