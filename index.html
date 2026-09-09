@@ -51,6 +51,7 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 .btn-closing{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
 .btn-item-master{background:linear-gradient(135deg, #e91e63, #ad1457);color:#fff}
 .btn-reset{background:linear-gradient(135deg, #ff9800, #f57c00);color:#fff}
+.btn-kot{background:linear-gradient(135deg, #d81b60, #8e24aa);color:#fff}
 
 .primary{background:linear-gradient(135deg, #6a1b9a, #4a148c);color:#fff}
 .green{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
@@ -78,6 +79,9 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
   header{padding:15px}.section{padding:13px}
 }
 
+/* PRINT MEDIA TYPES - KOT & FINAL BILL */
+#kotPrintArea{display:none}
+
 @media print{
   body{background:#fff;color:#000;font-family:'Courier New',monospace;font-size:12px;margin:0;padding:0}
   header,.back,.no-print,#cloudSetup,#cloudStatus,button,footer,.sidebar,.overlay{display:none!important}
@@ -90,6 +94,9 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
   .bill th, .bill td{padding:4px 0;font-size:11px;border-bottom:1px dashed #ccc}
   .total{font-size:16px;text-align:right;margin-top:10px;border-top:1px solid #000;padding-top:5px}
   @page{size:80mm auto;margin:2mm}
+
+  body.printing-kot .container, body.printing-kot header, body.printing-kot footer{display:none!important}
+  body.printing-kot #kotPrintArea{display:block!important;padding:5px}
 }
 
 .hint{color:#666;font-size:13px;margin-top:-5px}
@@ -114,6 +121,9 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
 </style>
 </head>
 <body>
+
+<!-- KOT PRINT TEMPLATE AREA -->
+<div id="kotPrintArea"></div>
 
 <!-- SIDEBAR OVERLAY -->
 <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
@@ -284,6 +294,7 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
       </table>
       <div class="total">Grand Total: ₹ <span id="total">0.00</span></div>
       <div class="actions no-print">
+        <button class="btn-kot" onclick="saveAndPrintKOT()">🍳 Save & KOT Print</button>
         <button class="primary" onclick="saveBill()">Save Bill</button>
         <button class="gray" onclick="window.print()">🖨 Print Thermal</button>
         <button class="blue" onclick="exportPDF()">📄 Save PDF</button>
@@ -673,6 +684,58 @@ function addItem(){
   document.getElementById('item').value='';document.getElementById('qty').value=1;document.getElementById('rate').value=0;document.getElementById('item').focus();
 }
 
+/* SAVE & PRINT KOT FUNCTION */
+function saveAndPrintKOT(){
+  if(!data[current].items.length){
+    alert('KOT ke liye kam se kam 1 item add karein!');
+    return;
+  }
+
+  saveBill();
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-IN');
+  const timeStr = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  let kotRows = data[current].items.map((x, idx) => `
+    <tr>
+      <td style="padding:4px 0;border-bottom:1px dashed #000">${idx + 1}</td>
+      <td style="padding:4px 0;border-bottom:1px dashed #000"><b>${escapeHtml(x.name)}</b></td>
+      <td style="padding:4px 0;border-bottom:1px dashed #000;text-align:right"><b>${x.qty}</b></td>
+    </tr>
+  `).join('');
+
+  const kotHtml = `
+    <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:8px">
+      <h2 style="margin:0;font-size:20px">--- KOT ---</h2>
+      <h3 style="margin:4px 0 0;font-size:18px">TABLE: ${current}</h3>
+    </div>
+    <div style="font-size:11px;margin-bottom:8px">
+      <span>Bill No: ${escapeHtml(data[current].billNo)}</span><br>
+      <span>Date: ${dateStr} | Time: ${timeStr}</span><br>
+      <span>Guest: ${escapeHtml(data[current].guest || 'Walk-in')}</span>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left">
+      <thead>
+        <tr style="border-bottom:1px solid #000">
+          <th>#</th><th>Item Name</th><th style="text-align:right">Qty</th>
+        </tr>
+      </thead>
+      <tbody>${kotRows}</tbody>
+    </table>
+    <div style="text-align:center;margin-top:15px;font-weight:bold;font-size:12px;border-top:1px dashed #000;padding-top:5px">
+      *** KITCHEN COPY ***
+    </div>
+  `;
+
+  const kotDiv = document.getElementById('kotPrintArea');
+  kotDiv.innerHTML = kotHtml;
+
+  document.body.classList.add('printing-kot');
+  window.print();
+  document.body.classList.remove('printing-kot');
+}
+
 function removeItem(i){
   const item=data[current].items[i];
   if(item.saved){
@@ -862,12 +925,6 @@ saveBill=async function(){
   originalSaveBill();
   if(!data[current].items.length) return;
   const result=await pushCurrentBillToCloud(current);
-  if(result.ok){
-    alert('✅ Bill local + CLOUD DATABASE me save ho gaya.\nTable: '+current);
-  }else{
-    alert('⚠️ Local bill save ho gaya, CLOUD me nahi hua.\n\nReason:\n'+result.message+
-      '\n\nCloud Database button se Test Connection karo.');
-  }
 };
 
 const originalClearBill=clearBill;
