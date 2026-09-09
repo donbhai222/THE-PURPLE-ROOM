@@ -19,7 +19,6 @@ h2{margin:10px 0 14px}.section{background:white;border-radius:14px;padding:18px;
 .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
 input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
 
-/* MOBILE RESPONSIVE ITEM ADD ROW */
 .row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
 .search-wrapper{position:relative;width:100%;grid-column:span 4}
 .search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #7b1fa2;border-radius:8px;max-height:180px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none}
@@ -34,6 +33,14 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 .primary{background:#4b176d;color:#fff}.green{background:#188038;color:#fff}.gray{background:#ddd}.blue{background:#1976d2;color:#fff}
 .back{margin-bottom:12px}
 
+/* ITEM MANAGE LIST STYLES */
+.item-manage-list{margin-top:15px;max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:8px}
+.item-manage-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #f0f0f0}
+.item-manage-row:last-child{border-bottom:none}
+.btn-sm{padding:4px 8px;font-size:12px;border-radius:4px;border:none;cursor:pointer;margin-left:4px}
+.btn-edit{background:#1976d2;color:white}
+.btn-del{background:#d32f2f;color:white}
+
 @media(max-width:750px){
   .grid{grid-template-columns:1fr}
   .row{grid-template-columns:1fr 1fr auto;gap:8px}
@@ -41,7 +48,6 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
   header{padding:15px}.section{padding:13px}
 }
 
-/* THERMAL PRINTER & PDF PRINT FORMAT (80mm) */
 @media print{
   body{background:#fff;color:#000;font-family:'Courier New',monospace;font-size:12px;margin:0;padding:0}
   header,.back,.no-print,#cloudSetup,#cloudStatus,button{display:none!important}
@@ -56,11 +62,7 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
   @page{size:80mm auto;margin:2mm}
 }
 
-.hint{color:#666;font-size:13px;margin-top:-5px}.menu-list{margin-top:12px;display:grid;gap:7px}
-.menu-row{display:grid;grid-template-columns:1fr 120px auto;gap:8px;align-items:center;padding:9px;border:1px solid #eee;border-radius:8px}
-.menu-row button{border:0;border-radius:7px;padding:7px 10px;cursor:pointer}
-@media(max-width:750px){.menu-row{grid-template-columns:1fr 90px auto}}
-
+.hint{color:#666;font-size:13px;margin-top:-5px}
 .charge-row{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center}
 
 .print-head{text-align:center;border-bottom:2px solid #4b176d;padding-bottom:10px;margin-bottom:12px}
@@ -116,14 +118,19 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
   </div>
 </div>
 <div id="menuSection" class="section">
-  <h2>🍽️ Item Master</h2>
-  <p class="hint">Yahan item aur uska fixed rate ek baar add karo. Billing me item search karte hi option aayenge.</p>
+  <h2>🍽️ Item Master (Add & Edit)</h2>
+  <p class="hint">Yahan se naye item add karein ya purane items ka naam/rate update karein.</p>
   <div class="row no-print" style="grid-template-columns:1fr 1fr auto">
-    <input id="newItemName" placeholder="Item name (e.g. Paneer Tikka)">
+    <input id="newItemName" placeholder="Item name">
     <input id="newItemRate" type="number" min="0" placeholder="Rate">
     <button class="add" onclick="addMenuItem()">Add Item</button>
   </div>
-  <div id="menuList" class="menu-list"></div>
+  
+  <button onclick="toggleManageList()" class="gray" style="margin-top:10px;font-size:13px;padding:6px 10px;cursor:pointer">✏️ Manage Existing Items List</button>
+
+  <div id="manageListContainer" class="hidden">
+    <div id="menuManageList" class="item-manage-list"></div>
+  </div>
 </div>
 
   <div class="section">
@@ -213,7 +220,6 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
       </div>
       <h2 id="tableTitle"></h2>
       
-      <!-- MOBILE OPTIMIZED SEARCH & ADD ROW -->
       <div class="row no-print">
         <div class="search-wrapper">
           <input id="item" placeholder="🔍 Search item name..." oninput="searchItems()" onfocus="searchItems()" autocomplete="off">
@@ -268,36 +274,94 @@ let menu=JSON.parse(localStorage.getItem('purpleRoomMenu')||'null') || [
   {name:'Tea',rate:30},{name:'Coffee',rate:50},{name:'Water Bottle',rate:30}
 ];
 
-function saveMenu(){localStorage.setItem('purpleRoomMenu',JSON.stringify(menu));}
-function renderMenu(){
-  const list=document.getElementById('menuList');
-  list.innerHTML='';
-  menu.forEach((x,i)=>{
-    const row=document.createElement('div'); row.className='menu-row';
-    row.innerHTML=`<b>${escapeHtml(x.name)}</b><span>₹ ${Number(x.rate).toFixed(2)}</span><button onclick="deleteMenuItem(${i})">Delete</button>`;
-    list.appendChild(row);
-  });
+function saveMenu(){
+  localStorage.setItem('purpleRoomMenu',JSON.stringify(menu));
+  renderManageList();
 }
+
 function addMenuItem(){
   const name=document.getElementById('newItemName').value.trim();
   const rate=Number(document.getElementById('newItemRate').value);
   if(!name || rate<0){alert('Item name aur rate sahi bharo.');return}
   const existing=menu.find(x=>x.name.toLowerCase()===name.toLowerCase());
-  if(existing){existing.rate=rate}else menu.push({name,rate});
-  saveMenu(); renderMenu();
-  document.getElementById('newItemName').value='';document.getElementById('newItemRate').value='';
-  alert('Item aur rate save ho gaya!');
-}
-function deleteMenuItem(i){
-  if(confirm('Is item ko menu se delete karna hai?')){menu.splice(i,1);saveMenu();renderMenu();}
+  if(existing){
+    existing.rate=rate;
+  }else{
+    menu.push({name,rate});
+  }
+  saveMenu();
+  document.getElementById('newItemName').value='';
+  document.getElementById('newItemRate').value='';
+  alert('Item database me add/update ho gaya!');
 }
 
-/* SEARCH DROPDOWN LOGIC */
+function toggleManageList(){
+  const cont=document.getElementById('manageListContainer');
+  if(cont.classList.contains('hidden')){
+    cont.classList.remove('hidden');
+    renderManageList();
+  }else{
+    cont.classList.add('hidden');
+  }
+}
+
+function renderManageList(){
+  const div=document.getElementById('menuManageList');
+  if(!div) return;
+  div.innerHTML='';
+  if(!menu.length){
+    div.innerHTML='<p style="font-size:12px;color:#666">Koi item add nahi hua hai.</p>';
+    return;
+  }
+  menu.forEach((x,index)=>{
+    const row=document.createElement('div');
+    row.className='item-manage-row';
+    row.innerHTML=`
+      <span><b>${escapeHtml(x.name)}</b> - ₹${x.rate}</span>
+      <div>
+        <button class="btn-sm btn-edit" onclick="editMenuItem(${index})">Edit</button>
+        <button class="btn-sm btn-del" onclick="deleteMenuItem(${index})">Delete</button>
+      </div>
+    `;
+    div.appendChild(row);
+  });
+}
+
+function editMenuItem(index){
+  const item=menu[index];
+  const newName=prompt("Item ka Naya Naam dalein:", item.name);
+  if(newName === null) return;
+  const newRate=prompt("Item ka Naya Rate dalein:", item.rate);
+  if(newRate === null) return;
+
+  const parsedRate=Number(newRate);
+  if(!newName.trim() || isNaN(parsedRate) || parsedRate<0){
+    alert("Sahi name aur rate bharo.");
+    return;
+  }
+
+  menu[index]={name: newName.trim(), rate: parsedRate};
+  saveMenu();
+  alert("Item updated successfully!");
+}
+
+function deleteMenuItem(index){
+  if(confirm(`Kya aap "${menu[index].name}" ko hatana chahte hain?`)){
+    menu.splice(index, 1);
+    saveMenu();
+  }
+}
+
 function searchItems(){
   const input=document.getElementById('item');
   const filter=input.value.toLowerCase().trim();
   const resultsDiv=document.getElementById('searchResults');
   resultsDiv.innerHTML='';
+
+  if(!filter){
+    resultsDiv.style.display='none';
+    return;
+  }
 
   const matches=menu.filter(x=>x.name.toLowerCase().includes(filter));
 
@@ -545,9 +609,7 @@ function clearBill(){
 function goHome(){document.getElementById('billing').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 makeTables();
-renderMenu();
 
-// ===== CLOUD DATABASE =====
 const DEFAULT_CLOUD_URL='https://sgwdrxnlyjpbnojonpgd.supabase.co';
 const DEFAULT_CLOUD_KEY='sb_publishable_53YvwoAlThZUqnzW4xzU1g_AJekyjnk';
 let cloudEnabled=false;
