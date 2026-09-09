@@ -41,7 +41,7 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 .search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid #7b1fa2;border-radius:8px;max-height:180px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none}
 .search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #eee;display:flex;justify-content:space-between;font-size:14px}
 .search-item:last-child{border-bottom:none}
-.search-item:hover, .search-item.active{background:#f0e6f6;color:#4b176d;font-weight:bold}
+.search-item:hover, .search-item.selected{background:#f0e6f6;color:#4b176d;font-weight:bold}
 
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
 .actions button, .btn-action{border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:bold;transition:all 0.2s ease;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
@@ -270,7 +270,7 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
       
       <div class="row no-print">
         <div class="search-wrapper">
-          <input id="item" placeholder="🔍 Bill here..." oninput="searchItems()" onfocus="searchItems()" autocomplete="off">
+          <input id="item" placeholder="🔍 Bill here..." oninput="searchItems()" onfocus="searchItems()" onkeydown="handleSearchKey(event)" autocomplete="off">
           <div id="searchResults" class="search-results"></div>
         </div>
         <input id="qty" type="number" min="1" value="1" placeholder="Qty">
@@ -330,6 +330,8 @@ let current=null;
 let menu=JSON.parse(localStorage.getItem('purpleRoomMenu')||'null') || [
   {name:'Tea',rate:30},{name:'Coffee',rate:50},{name:'Water Bottle',rate:30}
 ];
+
+let selectedSearchIndex = -1;
 
 function saveMenu(){
   localStorage.setItem('purpleRoomMenu',JSON.stringify(menu));
@@ -414,6 +416,7 @@ function searchItems(){
   const filter=input.value.toLowerCase().trim();
   const resultsDiv=document.getElementById('searchResults');
   resultsDiv.innerHTML='';
+  selectedSearchIndex = -1;
 
   if(!filter){
     resultsDiv.style.display='none';
@@ -423,9 +426,10 @@ function searchItems(){
   const matches=menu.filter(x=>x.name.toLowerCase().includes(filter));
 
   if(matches.length>0){
-    matches.forEach(item=>{
+    matches.forEach((item, index)=>{
       const div=document.createElement('div');
       div.className='search-item';
+      div.dataset.index = index;
       div.innerHTML=`<span>${escapeHtml(item.name)}</span><b>₹ ${item.rate}</b>`;
       div.onclick=()=>selectSearchItem(item.name, item.rate);
       resultsDiv.appendChild(div);
@@ -436,11 +440,49 @@ function searchItems(){
   }
 }
 
+function handleSearchKey(e){
+  const resultsDiv=document.getElementById('searchResults');
+  const items=resultsDiv.querySelectorAll('.search-item');
+  if(!items.length || resultsDiv.style.display==='none') return;
+
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    if(selectedSearchIndex < items.length - 1){
+      selectedSearchIndex++;
+      updateSearchSelection(items);
+    }
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    if(selectedSearchIndex > 0){
+      selectedSearchIndex--;
+      updateSearchSelection(items);
+    }
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    if(selectedSearchIndex >= 0 && items[selectedSearchIndex]){
+      items[selectedSearchIndex].click();
+    }
+  }
+}
+
+function updateSearchSelection(items){
+  items.forEach((item, idx)=>{
+    if(idx===selectedSearchIndex){
+      item.classList.add('selected');
+      item.scrollIntoView({block:'nearest'});
+    } else {
+      item.classList.remove('selected');
+    }
+  });
+}
+
 function selectSearchItem(name, rate){
   document.getElementById('item').value=name;
   document.getElementById('rate').value=rate;
   document.getElementById('searchResults').style.display='none';
+  selectedSearchIndex = -1;
   document.getElementById('qty').focus();
+  document.getElementById('qty').select();
 }
 
 document.addEventListener('click', function(e){
