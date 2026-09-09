@@ -18,14 +18,28 @@ h2{margin:10px 0 14px}.section{background:white;border-radius:14px;padding:18px;
 .hidden{display:none}
 .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
 input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+
+/* MOBILE RESPONSIVE ITEM ADD ROW */
 .row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.search-wrapper{position:relative;width:100%;grid-column:span 4}
+.search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #7b1fa2;border-radius:8px;max-height:180px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none}
+.search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #eee;display:flex;justify-content:space-between;font-size:14px}
+.search-item:last-child{border-bottom:none}
+.search-item:hover, .search-item.active{background:#f0e6f6;color:#4b176d;font-weight:bold}
+
 .add{background:#4b176d;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
 .bill{border-collapse:collapse;width:100%;margin-top:12px}.bill th,.bill td{border-bottom:1px solid #ddd;padding:9px;text-align:left}
 .total{text-align:right;font-size:22px;font-weight:bold;margin-top:15px}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.actions button{border:0;border-radius:8px;padding:11px 16px;cursor:pointer}
 .primary{background:#4b176d;color:#fff}.green{background:#188038;color:#fff}.gray{background:#ddd}.blue{background:#1976d2;color:#fff}
 .back{margin-bottom:12px}
-@media(max-width:750px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr 80px 90px auto}header{padding:15px}.section{padding:13px}}
+
+@media(max-width:750px){
+  .grid{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr 1fr auto;gap:8px}
+  .search-wrapper{grid-column:span 3}
+  header{padding:15px}.section{padding:13px}
+}
 
 /* THERMAL PRINTER & PDF PRINT FORMAT (80mm) */
 @media print{
@@ -103,8 +117,8 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 </div>
 <div id="menuSection" class="section">
   <h2>🍽️ Item Master</h2>
-  <p class="hint">Yahan item aur uska fixed rate ek baar add karo. Billing me item search/select karte hi rate automatically aa jayega.</p>
-  <div class="row no-print">
+  <p class="hint">Yahan item aur uska fixed rate ek baar add karo. Billing me item search karte hi option aayenge.</p>
+  <div class="row no-print" style="grid-template-columns:1fr 1fr auto">
     <input id="newItemName" placeholder="Item name (e.g. Paneer Tikka)">
     <input id="newItemRate" type="number" min="0" placeholder="Rate">
     <button class="add" onclick="addMenuItem()">Add Item</button>
@@ -198,13 +212,18 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
         </div>
       </div>
       <h2 id="tableTitle"></h2>
+      
+      <!-- MOBILE OPTIMIZED SEARCH & ADD ROW -->
       <div class="row no-print">
-        <input id="item" list="itemOptions" placeholder="Search / select item" oninput="autoRate()">
-        <datalist id="itemOptions"></datalist>
+        <div class="search-wrapper">
+          <input id="item" placeholder="🔍 Search item name..." oninput="searchItems()" onfocus="searchItems()" autocomplete="off">
+          <div id="searchResults" class="search-results"></div>
+        </div>
         <input id="qty" type="number" min="1" value="1" placeholder="Qty">
         <input id="rate" type="number" min="0" value="0" placeholder="Rate" readonly>
-        <button class="add" onclick="addItem()">Add</button>
+        <button class="add" onclick="addItem()">+ Add</button>
       </div>
+
       <table class="bill">
         <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th class="no-print"></th></tr></thead>
         <tbody id="items"></tbody>
@@ -251,10 +270,9 @@ let menu=JSON.parse(localStorage.getItem('purpleRoomMenu')||'null') || [
 
 function saveMenu(){localStorage.setItem('purpleRoomMenu',JSON.stringify(menu));}
 function renderMenu(){
-  const list=document.getElementById('menuList'), opts=document.getElementById('itemOptions');
-  list.innerHTML=''; opts.innerHTML='';
+  const list=document.getElementById('menuList');
+  list.innerHTML='';
   menu.forEach((x,i)=>{
-    const o=document.createElement('option'); o.value=x.name; opts.appendChild(o);
     const row=document.createElement('div'); row.className='menu-row';
     row.innerHTML=`<b>${escapeHtml(x.name)}</b><span>₹ ${Number(x.rate).toFixed(2)}</span><button onclick="deleteMenuItem(${i})">Delete</button>`;
     list.appendChild(row);
@@ -273,11 +291,43 @@ function addMenuItem(){
 function deleteMenuItem(i){
   if(confirm('Is item ko menu se delete karna hai?')){menu.splice(i,1);saveMenu();renderMenu();}
 }
-function autoRate(){
-  const name=document.getElementById('item').value.trim().toLowerCase();
-  const found=menu.find(x=>x.name.toLowerCase()===name);
-  document.getElementById('rate').value=found ? found.rate : '';
+
+/* SEARCH DROPDOWN LOGIC */
+function searchItems(){
+  const input=document.getElementById('item');
+  const filter=input.value.toLowerCase().trim();
+  const resultsDiv=document.getElementById('searchResults');
+  resultsDiv.innerHTML='';
+
+  const matches=menu.filter(x=>x.name.toLowerCase().includes(filter));
+
+  if(matches.length>0){
+    matches.forEach(item=>{
+      const div=document.createElement('div');
+      div.className='search-item';
+      div.innerHTML=`<span>${escapeHtml(item.name)}</span><b>₹ ${item.rate}</b>`;
+      div.onclick=()=>selectSearchItem(item.name, item.rate);
+      resultsDiv.appendChild(div);
+    });
+    resultsDiv.style.display='block';
+  }else{
+    resultsDiv.style.display='none';
+  }
 }
+
+function selectSearchItem(name, rate){
+  document.getElementById('item').value=name;
+  document.getElementById('rate').value=rate;
+  document.getElementById('searchResults').style.display='none';
+  document.getElementById('qty').focus();
+}
+
+document.addEventListener('click', function(e){
+  const searchBox=document.querySelector('.search-wrapper');
+  if(searchBox && !searchBox.contains(e.target)){
+    document.getElementById('searchResults').style.display='none';
+  }
+});
 
 function calculateTotal(t){
   let subtotal=t.items.reduce((s,x)=>s+(x.qty*x.rate),0);
