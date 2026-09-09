@@ -9,7 +9,6 @@
 header{background:linear-gradient(135deg, #4b176d, #7b1fa2);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 10px rgba(0,0,0,0.15);position:relative}
 header h1{margin:0;font-size:25px} header span{font-size:13px;opacity:.85}
 
-/* HAMBURGER MENU & SIDEBAR STYLES */
 .menu-btn{background:transparent;border:none;color:#fff;font-size:26px;cursor:pointer;padding:0 10px;margin-right:10px;display:flex;align-items:center}
 .sidebar{position:fixed;top:0;left:-280px;width:280px;height:100%;background:#33104a;box-shadow:4px 0 15px rgba(0,0,0,0.3);z-index:10001;transition:left 0.3s ease;padding:20px 15px;display:flex;flex-direction:column}
 .sidebar.active{left:0}
@@ -79,7 +78,6 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
   header{padding:15px}.section{padding:13px}
 }
 
-/* PRINT MEDIA TYPES - KOT & FINAL BILL */
 #kotPrintArea{display:none}
 
 @media print{
@@ -122,13 +120,10 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
 </head>
 <body>
 
-<!-- KOT PRINT TEMPLATE AREA -->
 <div id="kotPrintArea"></div>
 
-<!-- SIDEBAR OVERLAY -->
 <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
 
-<!-- SIDEBAR MENU -->
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
     <h3>Menu Options</h3>
@@ -184,7 +179,6 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
   </div>
 </div>
 
-<!-- ITEM MASTER SECTION -->
 <div id="itemMasterView" class="hidden">
   <div class="section">
     <button class="back gray no-print" onclick="hideItemMaster()">← Back to Tables</button>
@@ -336,9 +330,9 @@ function toggleSidebar(){
   document.getElementById('overlay').classList.toggle('active');
 }
 
-const data=JSON.parse(localStorage.getItem('purpleRoomBills')||'{}');
-let current=null;
-let menu=JSON.parse(localStorage.getItem('purpleRoomMenu')||'null') || [
+const data = JSON.parse(localStorage.getItem('purpleRoomBills') || '{}');
+let current = null;
+let menu = JSON.parse(localStorage.getItem('purpleRoomMenu') || 'null') || [
   {name:'Tea',rate:30},{name:'Coffee',rate:50},{name:'Water Bottle',rate:30}
 ];
 
@@ -509,12 +503,14 @@ document.addEventListener('click', function(e){
 });
 
 function calculateTotal(t){
+  if (!t || !t.items) return 0;
   let subtotal=t.items.reduce((s,x)=>s+(x.qty*x.rate),0);
   let d=Number(t.discount||0);
   let discount=t.discountType==='percent'?subtotal*d/100:d;
   discount=Math.min(Math.max(discount,0),subtotal);
   return (subtotal-discount)+((subtotal-discount)*Number(t.gst||0)/100);
 }
+
 function showReports(){
   document.getElementById('home').classList.add('hidden');
   document.getElementById('reports').classList.remove('hidden');
@@ -522,7 +518,7 @@ function showReports(){
   let bills=0,sales=0,cash=0,upi=0,card=0;
   Object.keys(data).forEach(id=>{
     const t=data[id];
-    if(t.billNo && t.billNo!=='-' && t.items.length){
+    if(t.billNo && t.billNo!=='-' && t.items && t.items.length){
       const total=calculateTotal(t); bills++; sales+=total;
       if(t.payment==='Cash')cash+=total; else if(t.payment==='UPI')upi+=total; else if(t.payment==='Card')card+=total;
       const tr=document.createElement('tr');
@@ -536,7 +532,9 @@ function showReports(){
   document.getElementById('rUpi').textContent=upi.toFixed(2);
   document.getElementById('rCard').textContent=card.toFixed(2);
 }
+
 function hideReports(){document.getElementById('reports').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
+
 function showClosing(){
   document.getElementById('home').classList.add('hidden');document.getElementById('closing').classList.remove('hidden');
   const rows=document.getElementById('closingRows');rows.innerHTML='';
@@ -554,7 +552,9 @@ function showClosing(){
   document.getElementById('cBills').textContent=bills;document.getElementById('cSales').textContent=sales.toFixed(2);
   document.getElementById('cCash').textContent=cash.toFixed(2);document.getElementById('cUpi').textContent=upi.toFixed(2);document.getElementById('cCard').textContent=card.toFixed(2);
 }
+
 function hideClosing(){document.getElementById('closing').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
+
 function viewBill(id){
   const t=data[id];if(!t)return;
   document.getElementById('reports').classList.add('hidden');document.getElementById('closing').classList.add('hidden');document.getElementById('home').classList.add('hidden');
@@ -566,6 +566,7 @@ function viewBill(id){
   let rows=t.items.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${(x.qty*x.rate).toFixed(2)}</td></tr>`).join('');
   document.getElementById('detailContent').innerHTML=`<div class="detail-head"><h2>THE PURPLE ROOM</h2><div>PARTY BILL / RECEIPT</div><div class="detail-meta"><span>Bill: <b>${escapeHtml(t.billNo)}</b></span><span>Table: <b>${id}</b></span><span>${when.toLocaleString('en-IN')}</span></div></div><p><b>Guest:</b> ${escapeHtml(t.guest||'-')} &nbsp; <b>Payment:</b> ${escapeHtml(t.payment||'-')}</p><table class="bill"><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><p style="text-align:right">Subtotal: ₹ ${subtotal.toFixed(2)}<br>Discount: ₹ ${discount.toFixed(2)}<br>GST: ₹ ${gst.toFixed(2)}<br><strong style="font-size:20px">Grand Total: ₹ ${total.toFixed(2)}</strong></p>`;
 }
+
 function hideBillDetail(){document.getElementById('billDetail').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
 
 function exportPDF(){
@@ -618,6 +619,7 @@ function makeTables(){
   for(let i=1;i<=8;i++) addTable('R'+i,'premium');
   for(let i=1;i<=20;i++) addTable('S'+i,'standard');
 }
+
 function addTable(id,type){
   data[id]=data[id]||{items:[],status:'Available',billNo:'-'};
   const b=document.createElement('button'); b.id='btn-'+id; b.className='table-btn '+type;
@@ -625,6 +627,7 @@ function addTable(id,type){
   document.getElementById(type).appendChild(b);
   refreshButton(id);
 }
+
 function refreshButton(id){
   const b=document.getElementById('btn-'+id);
   const t=data[id]||{items:[],status:'Available'};
@@ -643,6 +646,12 @@ function updatePrintDate(){
 
 function openTable(id){
   current=id;
+  if(!data[id]) {
+    data[id] = {items:[], status:'Available', billNo:'-'};
+  }
+  if(!data[id].items) {
+    data[id].items = [];
+  }
   document.getElementById('home').classList.add('hidden');
   document.getElementById('billing').classList.remove('hidden');
   document.getElementById('tableTitle').textContent='Table '+id+' — Billing';
@@ -656,15 +665,24 @@ function openTable(id){
   updatePrintDate();
   render();
 }
+
 function render(){
-  const tbody=document.getElementById('items');tbody.innerHTML='';
+  const tbody=document.getElementById('items');
+  if(!tbody) return;
+  tbody.innerHTML='';
   let subtotal=0;
+  
+  if(!data[current]) return;
+  if(!data[current].items) data[current].items = [];
+
   data[current].items.forEach((x,i)=>{
-    const amount=x.qty*x.rate;subtotal+=amount;
+    const amount=x.qty*x.rate;
+    subtotal+=amount;
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${amount.toFixed(2)}</td><td class="no-print"><button class="btn-sm btn-del" onclick="removeItem(${i})">✕</button></td>`;
     tbody.appendChild(tr);
   });
+  
   const discountInput=Number(document.getElementById('discount')?.value||0);
   const discountType=document.getElementById('discountType')?.value||'amount';
   const discountValue=discountType==='percent' ? subtotal*discountInput/100 : discountInput;
@@ -673,6 +691,7 @@ function render(){
   const gstRate=Number(document.getElementById('gst')?.value||0);
   const gstValue=taxable*gstRate/100;
   const grand=taxable+gstValue;
+  
   document.getElementById('subtotal').textContent=subtotal.toFixed(2);
   document.getElementById('discountValue').textContent=safeDiscount.toFixed(2);
   document.getElementById('gstValue').textContent=gstValue.toFixed(2);
@@ -680,35 +699,54 @@ function render(){
   document.getElementById('status').textContent=data[current].status;
 }
 
-/* BATCH ADD ITEM WITHOUT AUTOSAVE */
+/* CORRECTED BATCH ADD ITEM */
 function addItem(){
-  const name=document.getElementById('item').value.trim();
-  const qty=Number(document.getElementById('qty').value);
-  const rate=Number(document.getElementById('rate').value);
+  const nameInput = document.getElementById('item');
+  const qtyInput = document.getElementById('qty');
+  const rateInput = document.getElementById('rate');
+
+  const name = nameInput.value.trim();
+  const qty = Number(qtyInput.value);
+  const rate = Number(rateInput.value);
   
-  if(!name||qty<=0||rate<0){
+  if(!name || qty<=0 || rate<0){
     alert('Item, quantity aur rate sahi bharo.');
     return;
   }
 
-  const existing = data[current].items.find(x => x.name.toLowerCase() === name.toLowerCase() && !x.saved);
+  if(!data[current]){
+    data[current] = {items:[], status:'Available', billNo:'-'};
+  }
+  if(!data[current].items){
+    data[current].items = [];
+  }
+
+  // Same item check and update quantity, else add new item line
+  const existing = data[current].items.find(x => x.name.toLowerCase() === name.toLowerCase());
   if(existing){
     existing.qty += qty;
   } else {
-    data[current].items.push({name, qty, rate, saved: false});
+    data[current].items.push({name: name, qty: qty, rate: rate, saved: false});
   }
 
+  // Update status locally to running
+  if(data[current].status === 'Available'){
+    data[current].status = 'Running';
+  }
+
+  // Render UI Table immediately
   render();
+  refreshButton(current);
   
-  document.getElementById('item').value='';
-  document.getElementById('qty').value=1;
-  document.getElementById('rate').value=0;
-  document.getElementById('item').focus();
+  // Clear inputs for next item entry without touching array
+  nameInput.value = '';
+  qtyInput.value = 1;
+  rateInput.value = 0;
+  nameInput.focus();
 }
 
-/* SAVE & PRINT KOT FUNCTION */
 function saveAndPrintKOT(){
-  if(!data[current].items.length){
+  if(!data[current] || !data[current].items || !data[current].items.length){
     alert('KOT ke liye kam se kam 1 item add karein!');
     return;
   }
@@ -782,7 +820,7 @@ async function performRemoveItem(i){
 }
 
 function saveBill(){
-  if(!data[current].items.length){
+  if(!data[current] || !data[current].items || !data[current].items.length){
     alert('Bill me koi item nahi hai!');
     return;
   }
@@ -817,6 +855,7 @@ function clearBill(){
     document.getElementById('printBillNo').textContent='-';
   }
 }
+
 function goHome(){document.getElementById('billing').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 makeTables();
@@ -831,14 +870,17 @@ function getCloudConfig(){
     return {url:(saved.url||DEFAULT_CLOUD_URL).replace(/\/+$/,''),key:saved.key||DEFAULT_CLOUD_KEY};
   }catch(e){ return {url:DEFAULT_CLOUD_URL,key:DEFAULT_CLOUD_KEY}; }
 }
+
 function setCloudStatus(text){
   const st=document.getElementById('cloudStatus');
   if(st) st.textContent=text;
 }
+
 function setCloudMsg(text){
   const m=document.getElementById('cloudMsg');
   if(m) m.textContent=text;
 }
+
 function openCloudSetup(){
   const c=getCloudConfig();
   document.getElementById('sbUrl').value=c.url;
@@ -846,9 +888,11 @@ function openCloudSetup(){
   setCloudMsg('');
   document.getElementById('cloudSetup').style.display='flex';
 }
+
 function cloudHeaders(c){
   return {'apikey':c.key,'Authorization':'Bearer '+c.key,'Content-Type':'application/json','Prefer':'return=representation'};
 }
+
 async function cloudRequest(path, options={}){
   const c=getCloudConfig();
   const res=await fetch(c.url+'/rest/v1/'+path,{
@@ -866,6 +910,7 @@ async function cloudRequest(path, options={}){
   }
   return body;
 }
+
 async function initCloud(showMessage=false){
   try{
     const c=getCloudConfig();
@@ -885,6 +930,7 @@ async function initCloud(showMessage=false){
     return {ok:false,message:e.message};
   }
 }
+
 async function saveCloudConfig(){
   const url=document.getElementById('sbUrl').value.trim().replace(/\/+$/,'');
   const key=document.getElementById('sbKey').value.trim();
@@ -893,6 +939,7 @@ async function saveCloudConfig(){
   const r=await initCloud(true);
   if(r.ok) setTimeout(()=>document.getElementById('cloudSetup').style.display='none',700);
 }
+
 async function pushCurrentBillToCloud(tableId){
   if(!tableId||!data[tableId]) return {ok:false,message:'Table data missing'};
   try{
@@ -929,6 +976,7 @@ async function pushCurrentBillToCloud(tableId){
     return {ok:false,message:e.message};
   }
 }
+
 async function pullCloudData(){
   try{
     const rows=await cloudRequest('bills?select=*&order=updated_at.desc',{method:'GET'});
