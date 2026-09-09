@@ -5,105 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>THE PURPLE ROOM - Party Billing</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f1f8;color:#222;display:flex;flex-direction:column;min-height:100vh}
-header{background:linear-gradient(135deg, #4b176d, #7b1fa2);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 10px rgba(0,0,0,0.15);position:relative}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f1f8;color:#222}
+header{background:#4b176d;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
 header h1{margin:0;font-size:25px} header span{font-size:13px;opacity:.85}
-
-.menu-btn{background:transparent;border:none;color:#fff;font-size:26px;cursor:pointer;padding:0 10px;margin-right:10px;display:flex;align-items:center}
-.sidebar{position:fixed;top:0;left:-280px;width:280px;height:100%;background:#33104a;box-shadow:4px 0 15px rgba(0,0,0,0.3);z-index:10001;transition:left 0.3s ease;padding:20px 15px;display:flex;flex-direction:column}
-.sidebar.active{left:0}
-.sidebar-header{display:flex;justify-content:space-between;align-items:center;color:#fff;border-bottom:1px solid #522075;padding-bottom:15px;margin-bottom:20px}
-.sidebar-header h3{margin:0;font-size:20px}
-.close-sidebar{background:none;border:none;color:#fff;font-size:24px;cursor:pointer}
-.sidebar-menu{display:flex;flex-direction:column;gap:12px}
-.sidebar-menu button{width:100%;text-align:left;border:0;border-radius:8px;padding:12px 16px;cursor:pointer;font-weight:bold;font-size:15px;transition:all 0.2s ease;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
-.sidebar-menu button:hover{transform:translateX(5px);opacity:0.95}
-
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:none}
-.overlay.active{display:block}
-
-.container{max-width:1200px;margin:20px auto;padding:0 16px;flex:1}
+.container{max-width:1200px;margin:20px auto;padding:0 16px}
 h2{margin:10px 0 14px}.section{background:white;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 3px 12px #00000012}
 .tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
-.table-btn{border:0;border-radius:12px;padding:16px 8px;font-size:17px;font-weight:bold;cursor:pointer;background:#eee;transition:all 0.2s ease}
-.table-btn:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.15)}
-.table-btn.premium{border-left:5px solid #7b1fa2;background:#f3e5f5;color:#4b176d}
-.table-btn.standard{border-left:5px solid #1976d2;background:#e3f2fd;color:#0d47a1}
-.table-btn.running{background:#fff3e0;border-left-color:#ff9800;color:#e65100}
+.table-btn{border:0;border-radius:12px;padding:16px 8px;font-size:17px;font-weight:bold;cursor:pointer;background:#eee}
+.table-btn.premium{border-left:5px solid #7b1fa2}.table-btn.standard{border-left:5px solid #1976d2}
+.table-btn.running{background:#fff0c2}.table-btn.paid{background:#d9f5df;color:#1e7e34;border-left:5px solid #28a745}
 .small{font-size:12px;font-weight:normal;display:block;margin-top:5px}
 .hidden{display:none}
 .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
 input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
-
 .row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
-.search-wrapper{position:relative;width:100%;grid-column:span 4}
-.search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid #7b1fa2;border-radius:8px;max-height:180px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none}
-.search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #eee;display:flex;justify-content:space-between;font-size:14px}
-.search-item:last-child{border-bottom:none}
-.search-item:hover, .search-item.selected{background:#f0e6f6;color:#4b176d;font-weight:bold}
-
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
-.actions button, .btn-action{border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:bold;transition:all 0.2s ease;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
-.actions button:hover, .btn-action:hover{transform:scale(1.02);opacity:0.95}
-
-.btn-report{background:linear-gradient(135deg, #1e88e5, #1565c0);color:#fff}
-.btn-closing{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
-.btn-item-master{background:linear-gradient(135deg, #e91e63, #ad1457);color:#fff}
-.btn-reset{background:linear-gradient(135deg, #ff9800, #f57c00);color:#fff}
-.btn-kot{background:linear-gradient(135deg, #d81b60, #8e24aa);color:#fff}
-
-.primary{background:linear-gradient(135deg, #6a1b9a, #4a148c);color:#fff}
-.green{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
-.gray{background:linear-gradient(135deg, #78909c, #455a64);color:#fff}
-.blue{background:linear-gradient(135deg, #0288d1, #01579b);color:#fff}
-.add{background:linear-gradient(135deg, #009688, #00695c);color:white;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;font-weight:bold}
-
+.add{background:#4b176d;color:white;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
 .bill{border-collapse:collapse;width:100%;margin-top:12px}.bill th,.bill td{border-bottom:1px solid #ddd;padding:9px;text-align:left}
-.total{text-align:right;font-size:22px;font-weight:bold;margin-top:15px;color:#2e7d32}
+.total{text-align:right;font-size:22px;font-weight:bold;margin-top:15px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.actions button{border:0;border-radius:8px;padding:11px 16px;cursor:pointer}
+.primary{background:#4b176d;color:#fff}.green{background:#188038;color:#fff}.gray{background:#ddd}
 .back{margin-bottom:12px}
+@media(max-width:750px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr 80px 90px auto}header{padding:15px}.section{padding:13px}}
+@media print{header,.back,.no-print{display:none!important}.container{margin:0}.section{box-shadow:none}.grid{display:block}.section{page-break-inside:avoid}}
 
-.item-manage-list{margin-top:15px;max-height:250px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;padding:8px;background:#fafafa}
-.item-manage-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#fff;margin-bottom:4px;border-radius:6px}
-.item-manage-row:last-child{border-bottom:none;margin-bottom:0}
-.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px;border:none;cursor:pointer;margin-left:4px;font-weight:bold;color:#fff}
-.btn-edit{background:#0288d1}
-.btn-del{background:#d32f2f}
+.hint{color:#666;font-size:13px;margin-top:-5px}.menu-list{margin-top:12px;display:grid;gap:7px}
+.menu-row{display:grid;grid-template-columns:1fr 120px auto;gap:8px;align-items:center;padding:9px;border:1px solid #eee;border-radius:8px}
+.menu-row button{border:0;border-radius:7px;padding:7px 10px;cursor:pointer}
+@media(max-width:750px){.menu-row{grid-template-columns:1fr 90px auto}}
 
-footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14px;font-weight:bold;letter-spacing:0.5px;box-shadow:0 -2px 8px rgba(0,0,0,0.1)}
-
-@media(max-width:750px){
-  .grid{grid-template-columns:1fr}
-  .row{grid-template-columns:1fr 1fr auto;gap:8px}
-  .search-wrapper{grid-column:span 3}
-  header{padding:15px}.section{padding:13px}
-}
-
-#kotPrintArea{display:none}
-
-@media print{
-  body{background:#fff;color:#000;font-family:'Courier New',monospace;font-size:12px;margin:0;padding:0}
-  header,.back,.no-print,#cloudSetup,#cloudStatus,button,footer,.sidebar,.overlay{display:none!important}
-  .container{max-width:100%;margin:0;padding:0}
-  .section{box-shadow:none;padding:0;margin:0;border-radius:0}
-  .grid{display:block}
-  .print-head{border-bottom:1px dashed #000;padding-bottom:5px;margin-bottom:8px;text-align:center}
-  .print-head h2{font-size:18px;color:#000;margin:0}
-  .print-meta{font-size:10px;margin-top:5px;display:block;text-align:left}
-  .bill th, .bill td{padding:4px 0;font-size:11px;border-bottom:1px dashed #ccc}
-  .total{font-size:16px;text-align:right;margin-top:10px;border-top:1px solid #000;padding-top:5px}
-  @page{size:80mm auto;margin:2mm}
-
-  body.printing-kot .container, body.printing-kot header, body.printing-kot footer{display:none!important}
-  body.printing-kot #kotPrintArea{display:block!important;padding:5px}
-}
-
-.hint{color:#666;font-size:13px;margin-top:-5px}
 .charge-row{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center}
 
 .print-head{text-align:center;border-bottom:2px solid #4b176d;padding-bottom:10px;margin-bottom:12px}
 .print-head h2{margin:0;color:#4b176d;font-size:24px}.print-head>div{margin-top:4px}
 .print-meta{display:flex;justify-content:space-between;font-size:12px;margin-top:10px}
 @media screen{.print-head{background:#faf7fc;padding:12px;border-radius:10px}}
+@media print{body{background:white}.print-head{display:block!important}.print-meta{font-size:11px}}
 
 .report-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:15px 0}
 .report-cards>div{background:#faf7fc;border:1px solid #e5dcef;border-radius:10px;padding:14px;text-align:center}
@@ -112,31 +48,14 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
 
 .detail-head{text-align:center;border-bottom:2px solid #4b176d;padding-bottom:10px;margin-bottom:12px}
 .detail-head h2{margin:0;color:#4b176d}.detail-meta{display:flex;justify-content:space-between;font-size:12px;margin-top:8px}
+@media print{#billDetail .actions{display:none!important}}
 
 #editModal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99}
 #editModal.hidden{display:none}.edit-box{width:min(420px,92vw);margin:0}
-.table-btn .amount{font-size:12px;margin-top:4px;display:block;color:#333}
+.table-btn .amount{font-size:12px;margin-top:4px;display:block;color:#555}
 </style>
 </head>
 <body>
-
-<div id="kotPrintArea"></div>
-
-<div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
-
-<div id="sidebar" class="sidebar">
-  <div class="sidebar-header">
-    <h3>Menu Options</h3>
-    <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
-  </div>
-  <div class="sidebar-menu">
-    <button class="btn-report" onclick="showReports(); toggleSidebar();">📊 Daily Report</button>
-    <button class="btn-closing" onclick="showClosing(); toggleSidebar();">🔒 Party Closing</button>
-    <button class="btn-item-master" onclick="showItemMaster(); toggleSidebar();">🍽️ Item Master</button>
-    <button class="btn-reset" onclick="resetAllData(); toggleSidebar();">↺ Reset Demo Data</button>
-  </div>
-</div>
-
 <div id="cloudSetup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;max-width:520px;width:100%;border-radius:14px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)">
     <h2 style="margin-top:0">☁️ Cloud Database Setup</h2>
@@ -146,29 +65,41 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
     <label>Supabase Anon Key</label>
     <input id="sbKey" style="width:100%;padding:10px;margin:6px 0 12px" placeholder="eyJ...">
     <div style="display:flex;gap:10px">
-      <button onclick="saveCloudConfig()" class="primary" style="padding:10px 14px">Save & Connect</button>
-      <button onclick="initCloud(true)" class="blue" style="padding:10px 14px">Test Connection</button>
-      <button onclick="document.getElementById('cloudSetup').style.display='none'" class="gray" style="padding:10px 14px">Cancel</button>
+      <button onclick="saveCloudConfig()" style="padding:10px 14px">Save & Connect</button>
+      <button onclick="initCloud(true)" style="padding:10px 14px">Test Connection</button>
+      <button onclick="document.getElementById('cloudSetup').style.display='none'" style="padding:10px 14px">Cancel</button>
     </div>
     <p id="cloudMsg" style="font-size:13px;color:#666;margin-bottom:0"></p>
   </div>
 </div>
 
 <div style="position:fixed;right:14px;top:14px;z-index:1000">
-  <button onclick="openCloudSetup()" style="padding:8px 12px;border-radius:8px;border:none;background:linear-gradient(135deg, #0288d1, #01579b);color:#fff;font-weight:bold;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">☁️ Cloud DB</button>
-  <span id="cloudStatus" style="display:block;text-align:center;font-size:11px;color:#fff;margin-top:3px;text-shadow:0 1px 2px #000">Local mode</span>
+  <button onclick="openCloudSetup()" style="padding:8px 12px;border-radius:8px;border:1px solid #ccc;background:#fff">☁️ Cloud Database</button>
+  <span id="cloudStatus" style="display:block;text-align:center;font-size:11px;color:#666;margin-top:3px">Local mode</span>
 </div>
 
-<header>
-  <div style="display:flex;align-items:center;">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <h1>THE PURPLE ROOM</h1>
-  </div>
-  <span>Party Billing System</span>
-</header>
+<header><h1>THE PURPLE ROOM</h1><span>Party Billing System</span></header>
 
 <div class="container">
 <div id="home">
+<div class="section no-print">
+  <div class="actions">
+    <button class="primary" onclick="showReports()">📊 Daily Report</button>
+    <button class="green" onclick="showClosing()">🔒 Party Closing</button>
+    <button class="gray" onclick="resetAllData()">Reset Demo Data</button>
+  </div>
+</div>
+<div id="menuSection" class="section">
+  <h2>🍽️ Item Master</h2>
+  <p class="hint">Yahan item aur uska fixed rate ek baar add karo. Billing me item search/select karte hi rate automatically aa jayega.</p>
+  <div class="row no-print">
+    <input id="newItemName" placeholder="Item name (e.g. Paneer Tikka)">
+    <input id="newItemRate" type="number" min="0" placeholder="Rate">
+    <button class="add" onclick="addMenuItem()">Add Item</button>
+  </div>
+  <div id="menuList" class="menu-list"></div>
+</div>
+
   <div class="section">
     <h2>🟣 Premium Guest — R1 to R8</h2>
     <div id="premium" class="tables"></div>
@@ -179,21 +110,6 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
   </div>
 </div>
 
-<div id="itemMasterView" class="hidden">
-  <div class="section">
-    <button class="back gray no-print" onclick="hideItemMaster()">← Back to Tables</button>
-    <h2>🍽️ Item Master (Manage Menu Items)</h2>
-    <p class="hint">Naye item add karein ya purane items ka name aur rate update/delete karein.</p>
-    <div class="row no-print" style="grid-template-columns:1fr 1fr auto">
-      <input id="newItemName" placeholder="Item Name (e.g. Paneer Tikka)">
-      <input id="newItemRate" type="number" min="0" placeholder="Rate (₹)">
-      <button class="add" onclick="addMenuItem()">+ Add / Update Item</button>
-    </div>
-    
-    <h3 style="margin-top:20px;">📋 Existing Items List</h3>
-    <div id="menuManageList" class="item-manage-list"></div>
-  </div>
-</div>
 
 <div id="reports" class="hidden">
   <div class="section">
@@ -214,14 +130,15 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
   </div>
 </div>
 
+
 <div id="closing" class="hidden">
   <div class="section">
     <button class="back gray no-print" onclick="hideClosing()">← Back to Tables</button>
     <h2>🔒 Party Closing Report</h2>
     <p>Payment aur table-wise final collection ka summary.</p>
     <div class="report-cards">
-      <div><span>Total Bills</span><b id="cBills">0</b></div>
-      <div><span>Total Sales</span><b>₹ <span id="cSales">0.00</span></b></div>
+      <div><span>Paid Bills</span><b id="cBills">0</b></div>
+      <div><span>Paid Sales</span><b>₹ <span id="cSales">0.00</span></b></div>
       <div><span>Cash</span><b>₹ <span id="cCash">0.00</span></b></div>
       <div><span>UPI</span><b>₹ <span id="cUpi">0.00</span></b></div>
       <div><span>Card</span><b>₹ <span id="cCard">0.00</span></b></div>
@@ -239,20 +156,20 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
     <button class="back gray no-print" onclick="hideBillDetail()">← Back</button>
     <div id="detailContent"></div>
     <div class="actions no-print">
-      <button class="primary" onclick="window.print()">🖨 Reprint Thermal Bill</button>
-      <button class="blue" onclick="exportPDF()">📄 Download PDF</button>
+      <button class="primary" onclick="window.print()">🖨 Reprint Bill</button>
       <button class="gray" onclick="hideBillDetail()">Close</button>
     </div>
   </div>
 </div>
 
+
 <div id="editModal" class="hidden">
   <div class="section edit-box">
-    <h2>🔐 Security Verification</h2>
-    <p>Action poora karne ke liye password enter karein.</p>
+    <h2>🔐 Edit Bill</h2>
+    <p>Bill edit karne ke liye password enter karo.</p>
     <input id="editPassword" type="password" placeholder="Password">
     <div class="actions no-print">
-      <button class="primary" onclick="verifyEdit()">Unlock & Proceed</button>
+      <button class="primary" onclick="verifyEdit()">Unlock & Edit</button>
       <button class="gray" onclick="closeEdit()">Cancel</button>
     </div>
   </div>
@@ -266,33 +183,29 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
         <h2>THE PURPLE ROOM</h2>
         <div>PARTY BILL / RECEIPT</div>
         <div class="print-meta">
-          <span>Bill No: <b id="printBillNo">-</b></span><br>
-          <span>Date: <b id="printDate">-</b> | Time: <b id="printTime">-</b></span>
+          <span>Bill No: <b id="printBillNo">-</b></span>
+          <span>Date: <b id="printDate">-</b></span>
+          <span>Time: <b id="printTime">-</b></span>
         </div>
       </div>
       <h2 id="tableTitle"></h2>
-      
       <div class="row no-print">
-        <div class="search-wrapper">
-          <input id="item" placeholder="🔍 Search & Add Item..." oninput="searchItems()" onfocus="searchItems()" onkeydown="handleSearchKey(event)" autocomplete="off">
-          <div id="searchResults" class="search-results"></div>
-        </div>
+        <input id="item" list="itemOptions" placeholder="Search / select item" oninput="autoRate()">
+        <datalist id="itemOptions"></datalist>
         <input id="qty" type="number" min="1" value="1" placeholder="Qty">
         <input id="rate" type="number" min="0" value="0" placeholder="Rate" readonly>
-        <button class="add" onclick="addItem()">+ Add Item</button>
+        <button class="add" onclick="addItem()">Add</button>
       </div>
-
       <table class="bill">
         <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th class="no-print"></th></tr></thead>
         <tbody id="items"></tbody>
       </table>
       <div class="total">Grand Total: ₹ <span id="total">0.00</span></div>
       <div class="actions no-print">
-        <button class="btn-kot" onclick="saveAndPrintKOT()">🍳 Save & KOT Print</button>
         <button class="primary" onclick="saveBill()">Save Bill</button>
-        <button class="gray" onclick="window.print()">🖨 Print Thermal</button>
-        <button class="blue" onclick="exportPDF()">📄 Save PDF</button>
-        <button class="btn-reset" style="padding:11px 16px" onclick="clearBill()">Clear Bill</button>
+        <button class="green" onclick="markPaid()">Mark Paid & Clear Table</button>
+        <button class="gray" onclick="window.print()">🖨 Print</button>
+        <button class="gray" onclick="clearBill()">Clear Bill</button>
       </div>
     </div>
 
@@ -320,190 +233,46 @@ footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14
 </div>
 </div>
 
-<footer class="no-print">
-  Developed by @ MR. DEEPANSHU
-</footer>
-
 <script>
-function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('active');
-  document.getElementById('overlay').classList.toggle('active');
-}
-
-let data = JSON.parse(localStorage.getItem('purpleRoomBills') || '{}');
-let current = null;
-let menu = JSON.parse(localStorage.getItem('purpleRoomMenu') || 'null') || [
+const data=JSON.parse(localStorage.getItem('purpleRoomBills')||'{}');
+let paidHistory=JSON.parse(localStorage.getItem('purpleRoomPaidHistory')||'[]');
+let current=null;
+let menu=JSON.parse(localStorage.getItem('purpleRoomMenu')||'null') || [
   {name:'Tea',rate:30},{name:'Coffee',rate:50},{name:'Water Bottle',rate:30}
 ];
 
-let selectedSearchIndex = -1;
-
-function saveMenu(){
-  localStorage.setItem('purpleRoomMenu',JSON.stringify(menu));
-  renderManageList();
+function saveMenu(){localStorage.setItem('purpleRoomMenu',JSON.stringify(menu));}
+function renderMenu(){
+  const list=document.getElementById('menuList'), opts=document.getElementById('itemOptions');
+  list.innerHTML=''; opts.innerHTML='';
+  menu.forEach((x,i)=>{
+    const o=document.createElement('option'); o.value=x.name; opts.appendChild(o);
+    const row=document.createElement('div'); row.className='menu-row';
+    row.innerHTML=`<b>${escapeHtml(x.name)}</b><span>₹ ${Number(x.rate).toFixed(2)}</span><button onclick="deleteMenuItem(${i})">Delete</button>`;
+    list.appendChild(row);
+  });
 }
-
-function showItemMaster(){
-  document.getElementById('home').classList.add('hidden');
-  document.getElementById('itemMasterView').classList.remove('hidden');
-  renderManageList();
-}
-
-function hideItemMaster(){
-  document.getElementById('itemMasterView').classList.add('hidden');
-  document.getElementById('home').classList.remove('hidden');
-}
-
 function addMenuItem(){
   const name=document.getElementById('newItemName').value.trim();
   const rate=Number(document.getElementById('newItemRate').value);
   if(!name || rate<0){alert('Item name aur rate sahi bharo.');return}
   const existing=menu.find(x=>x.name.toLowerCase()===name.toLowerCase());
-  if(existing){
-    existing.rate=rate;
-  }else{
-    menu.push({name,rate});
-  }
-  saveMenu();
-  document.getElementById('newItemName').value='';
-  document.getElementById('newItemRate').value='';
-  alert('Item database me successfully add/update ho gaya!');
+  if(existing){existing.rate=rate}else menu.push({name,rate});
+  saveMenu(); renderMenu();
+  document.getElementById('newItemName').value='';document.getElementById('newItemRate').value='';
+  alert('Item aur rate save ho gaya!');
 }
-
-function renderManageList(){
-  const div=document.getElementById('menuManageList');
-  if(!div) return;
-  div.innerHTML='';
-  if(!menu.length){
-    div.innerHTML='<p style="font-size:13px;color:#666">Koi item add nahi hua hai.</p>';
-    return;
-  }
-  menu.forEach((x,index)=>{
-    const row=document.createElement('div');
-    row.className='item-manage-row';
-    row.innerHTML=`
-      <span><b>${escapeHtml(x.name)}</b> - ₹${x.rate}</span>
-      <div>
-        <button class="btn-sm btn-edit" onclick="editMenuItem(${index})">Edit</button>
-        <button class="btn-sm btn-del" onclick="deleteMenuItem(${index})">Delete</button>
-      </div>
-    `;
-    div.appendChild(row);
-  });
+function deleteMenuItem(i){
+  if(confirm('Is item ko menu se delete karna hai?')){menu.splice(i,1);saveMenu();renderMenu();}
 }
-
-function editMenuItem(index){
-  const item=menu[index];
-  const newName=prompt("Item ka Naya Name dalein:", item.name);
-  if(newName === null) return;
-  const newRate=prompt("Item ka Naya Rate dalein:", item.rate);
-  if(newRate === null) return;
-
-  const parsedRate=Number(newRate);
-  if(!newName.trim() || isNaN(parsedRate) || parsedRate<0){
-    alert("Sahi name aur rate bharo.");
-    return;
-  }
-
-  menu[index]={name: newName.trim(), rate: parsedRate};
-  saveMenu();
+function autoRate(){
+  const name=document.getElementById('item').value.trim().toLowerCase();
+  const found=menu.find(x=>x.name.toLowerCase()===name);
+  document.getElementById('rate').value=found ? found.rate : '';
 }
-
-function deleteMenuItem(index){
-  if(confirm(`Kya aap "${menu[index].name}" ko hatana chahte hain?`)){
-    menu.splice(index, 1);
-    saveMenu();
-  }
-}
-
-function searchItems(){
-  const input=document.getElementById('item');
-  const filter=input.value.toLowerCase().trim();
-  const resultsDiv=document.getElementById('searchResults');
-  resultsDiv.innerHTML='';
-  selectedSearchIndex = -1;
-
-  if(!filter){
-    resultsDiv.style.display='none';
-    return;
-  }
-
-  const matches=menu.filter(x=>x.name.toLowerCase().includes(filter));
-
-  if(matches.length>0){
-    matches.forEach((item, index)=>{
-      const div=document.createElement('div');
-      div.className='search-item';
-      div.dataset.index = index;
-      div.innerHTML=`<span>${escapeHtml(item.name)}</span><b>₹ ${item.rate}</b>`;
-      div.onclick=()=>selectSearchItem(item.name, item.rate);
-      resultsDiv.appendChild(div);
-    });
-    resultsDiv.style.display='block';
-  }else{
-    resultsDiv.style.display='none';
-  }
-}
-
-function handleSearchKey(e){
-  const resultsDiv=document.getElementById('searchResults');
-  const items=resultsDiv.querySelectorAll('.search-item');
-  if(!items.length || resultsDiv.style.display==='none'){
-    if(e.key === 'Enter') addItem();
-    return;
-  }
-
-  if(e.key==='ArrowDown'){
-    e.preventDefault();
-    if(selectedSearchIndex < items.length - 1){
-      selectedSearchIndex++;
-      updateSearchSelection(items);
-    }
-  } else if(e.key==='ArrowUp'){
-    e.preventDefault();
-    if(selectedSearchIndex > 0){
-      selectedSearchIndex--;
-      updateSearchSelection(items);
-    }
-  } else if(e.key==='Enter'){
-    e.preventDefault();
-    if(selectedSearchIndex >= 0 && items[selectedSearchIndex]){
-      items[selectedSearchIndex].click();
-    } else {
-      addItem();
-    }
-  }
-}
-
-function updateSearchSelection(items){
-  items.forEach((item, idx)=>{
-    if(idx===selectedSearchIndex){
-      item.classList.add('selected');
-      item.scrollIntoView({block:'nearest'});
-    } else {
-      item.classList.remove('selected');
-    }
-  });
-}
-
-function selectSearchItem(name, rate){
-  document.getElementById('item').value=name;
-  document.getElementById('rate').value=rate;
-  document.getElementById('searchResults').style.display='none';
-  selectedSearchIndex = -1;
-  document.getElementById('qty').focus();
-  document.getElementById('qty').select();
-}
-
-document.addEventListener('click', function(e){
-  const searchBox=document.querySelector('.search-wrapper');
-  if(searchBox && !searchBox.contains(e.target)){
-    document.getElementById('searchResults').style.display='none';
-  }
-});
 
 function calculateTotal(t){
-  if (!t || !t.items) return 0;
+  if(!t || !t.items) return 0;
   let subtotal=t.items.reduce((s,x)=>s+(x.qty*x.rate),0);
   let d=Number(t.discount||0);
   let discount=t.discountType==='percent'?subtotal*d/100:d;
@@ -516,16 +285,23 @@ function showReports(){
   document.getElementById('reports').classList.remove('hidden');
   const rows=document.getElementById('reportRows');rows.innerHTML='';
   let bills=0,sales=0,cash=0,upi=0,card=0;
+
+  let allBills = [...paidHistory];
   Object.keys(data).forEach(id=>{
     const t=data[id];
-    if(t.billNo && t.billNo!=='-' && t.items && t.items.length){
-      const total=calculateTotal(t); bills++; sales+=total;
-      if(t.payment==='Cash')cash+=total; else if(t.payment==='UPI')upi+=total; else if(t.payment==='Card')card+=total;
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${escapeHtml(t.billNo)}</td><td>${id}</td><td>${escapeHtml(t.guest||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button class="btn-action primary" onclick="viewBill('${id}')">View</button> <button class="btn-action blue" onclick="editBill('${id}')">Edit</button></td>`;
-      rows.appendChild(tr);
+    if(t && t.billNo && t.billNo!=='-' && t.items && t.items.length){
+      allBills.push({...t, tableId: id});
     }
   });
+
+  allBills.forEach((t, idx)=>{
+    const total=calculateTotal(t); bills++; sales+=total;
+    if(t.payment==='Cash')cash+=total; else if(t.payment==='UPI')upi+=total; else if(t.payment==='Card')card+=total;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${escapeHtml(t.billNo)}</td><td>${t.tableId||'-'}</td><td>${escapeHtml(t.guest||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button onclick="viewHistoryBill(${idx})">View / Reprint</button></td>`;
+    rows.appendChild(tr);
+  });
+
   document.getElementById('rBills').textContent=bills;
   document.getElementById('rSales').textContent=sales.toFixed(2);
   document.getElementById('rCash').textContent=cash.toFixed(2);
@@ -539,24 +315,23 @@ function showClosing(){
   document.getElementById('home').classList.add('hidden');document.getElementById('closing').classList.remove('hidden');
   const rows=document.getElementById('closingRows');rows.innerHTML='';
   let bills=0,sales=0,cash=0,upi=0,card=0;
-  Object.keys(data).forEach(id=>{
-    const t=data[id];
-    if(t.items && t.items.length){
-      const total=calculateTotal(t);bills++;sales+=total;
-      if(t.payment==='Cash')cash+=total;else if(t.payment==='UPI')upi+=total;else if(t.payment==='Card')card+=total;
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${id}</td><td>${escapeHtml(t.billNo||'-')}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button class="btn-action primary" onclick="viewBill('${id}')">View</button></td>`;
-      rows.appendChild(tr);
-    }
+
+  paidHistory.forEach((t, idx)=>{
+    const total=calculateTotal(t);bills++;sales+=total;
+    if(t.payment==='Cash')cash+=total;else if(t.payment==='UPI')upi+=total;else if(t.payment==='Card')card+=total;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${t.tableId||'-'}</td><td>${escapeHtml(t.billNo)}</td><td>${escapeHtml(t.payment||'-')}</td><td>₹ ${total.toFixed(2)}</td><td class="no-print"><button onclick="viewHistoryBill(${idx})">View</button></td>`;
+    rows.appendChild(tr);
   });
+
   document.getElementById('cBills').textContent=bills;document.getElementById('cSales').textContent=sales.toFixed(2);
   document.getElementById('cCash').textContent=cash.toFixed(2);document.getElementById('cUpi').textContent=upi.toFixed(2);document.getElementById('cCard').textContent=card.toFixed(2);
 }
 
 function hideClosing(){document.getElementById('closing').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
 
-function viewBill(id){
-  const t=data[id];if(!t)return;
+function viewHistoryBill(idx){
+  const t=paidHistory[idx]; if(!t)return;
   document.getElementById('reports').classList.add('hidden');document.getElementById('closing').classList.add('hidden');document.getElementById('home').classList.add('hidden');
   document.getElementById('billDetail').classList.remove('hidden');
   let subtotal=t.items.reduce((s,x)=>s+x.qty*x.rate,0);
@@ -564,54 +339,41 @@ function viewBill(id){
   let taxable=subtotal-discount,gst=taxable*Number(t.gst||0)/100,total=taxable+gst;
   const when=t.createdAt?new Date(t.createdAt):new Date();
   let rows=t.items.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${(x.qty*x.rate).toFixed(2)}</td></tr>`).join('');
-  document.getElementById('detailContent').innerHTML=`<div class="detail-head"><h2>THE PURPLE ROOM</h2><div>PARTY BILL / RECEIPT</div><div class="detail-meta"><span>Bill: <b>${escapeHtml(t.billNo)}</b></span><span>Table: <b>${id}</b></span><span>${when.toLocaleString('en-IN')}</span></div></div><p><b>Guest:</b> ${escapeHtml(t.guest||'-')} &nbsp; <b>Payment:</b> ${escapeHtml(t.payment||'-')}</p><table class="bill"><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><p style="text-align:right">Subtotal: ₹ ${subtotal.toFixed(2)}<br>Discount: ₹ ${discount.toFixed(2)}<br>GST: ₹ ${gst.toFixed(2)}<br><strong style="font-size:20px">Grand Total: ₹ ${total.toFixed(2)}</strong></p>`;
+  document.getElementById('detailContent').innerHTML=`<div class="detail-head"><h2>THE PURPLE ROOM</h2><div>PARTY BILL / RECEIPT</div><div class="detail-meta"><span>Bill: <b>${escapeHtml(t.billNo)}</b></span><span>Table: <b>${t.tableId||'-'}</b></span><span>${when.toLocaleString('en-IN')}</span></div></div><p><b>Guest:</b> ${escapeHtml(t.guest||'-')} &nbsp; <b>Payment:</b> ${escapeHtml(t.payment||'-')}</p><table class="bill"><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><p style="text-align:right">Subtotal: ₹ ${subtotal.toFixed(2)}<br>Discount: ₹ ${discount.toFixed(2)}<br>GST: ₹ ${gst.toFixed(2)}<br><strong style="font-size:20px">Grand Total: ₹ ${total.toFixed(2)}</strong></p>`;
 }
 
 function hideBillDetail(){document.getElementById('billDetail').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
 
-function exportPDF(){
-  alert("Generating PDF... Print window open hone par 'Save as PDF' select karke Save karein.");
-  window.print();
-}
-
 function resetAllData(){
   if(!confirm('Demo billing data reset karna hai?'))return;
   Object.keys(data).forEach(id=>data[id]={items:[],status:'Available',billNo:'-'});
+  paidHistory = [];
   localStorage.removeItem('purpleRoomBills');
+  localStorage.removeItem('purpleRoomPaidHistory');
   Object.keys(data).forEach(refreshButton);
   alert('All table billing data reset ho gaya.');
 }
 
 const EDIT_PASSWORD='930239';
-let pendingAction=null;
+let pendingEditTable=null;
 
 function editBill(id){
-  pendingAction={type:'edit', tableId: id};
+  pendingEditTable=id;
   document.getElementById('editPassword').value='';
   document.getElementById('editModal').classList.remove('hidden');
   setTimeout(()=>document.getElementById('editPassword').focus(),50);
 }
-
 function verifyEdit(){
   if(document.getElementById('editPassword').value!==EDIT_PASSWORD){
-    alert('Wrong password!');
+    alert('Wrong password. Bill edit nahi ho sakta.');
     return;
   }
-  if(pendingAction){
-    if(pendingAction.type==='edit'){
-      const id=pendingAction.tableId;
-      closeEdit();
-      openTable(id);
-    } else if(pendingAction.type==='removeItem'){
-      const idx=pendingAction.itemIndex;
-      closeEdit();
-      performRemoveItem(idx);
-    }
-  }
+  const id=pendingEditTable;
+  closeEdit();
+  openTable(id);
 }
-
 function closeEdit(){
-  pendingAction=null;
+  pendingEditTable=null;
   document.getElementById('editModal').classList.add('hidden');
 }
 
@@ -619,7 +381,6 @@ function makeTables(){
   for(let i=1;i<=8;i++) addTable('R'+i,'premium');
   for(let i=1;i<=20;i++) addTable('S'+i,'standard');
 }
-
 function addTable(id,type){
   data[id]=data[id]||{items:[],status:'Available',billNo:'-'};
   const b=document.createElement('button'); b.id='btn-'+id; b.className='table-btn '+type;
@@ -627,12 +388,11 @@ function addTable(id,type){
   document.getElementById(type).appendChild(b);
   refreshButton(id);
 }
-
 function refreshButton(id){
   const b=document.getElementById('btn-'+id);
   const t=data[id]||{items:[],status:'Available'};
   const amount=t.items&&t.items.length?calculateTotal(t):0;
-  b.className='table-btn '+(id[0]=='R'?'premium':'standard')+' '+(t.status=='Running'?'running':'');
+  b.className='table-btn '+(id[0]=='R'?'premium':'standard')+' '+(t.status=='Running'?'running':t.status=='Paid'?'paid':'');
   b.innerHTML=id+'<span class="small">'+t.status+'</span>'+(amount?`<span class="amount">₹ ${amount.toFixed(2)}</span>`:'');
 }
 
@@ -646,12 +406,7 @@ function updatePrintDate(){
 
 function openTable(id){
   current=id;
-  if(!data[id]) {
-    data[id] = {items:[], status:'Available', billNo:'-'};
-  }
-  if(!Array.isArray(data[id].items)) {
-    data[id].items = [];
-  }
+  if(!data[id]) data[id] = {items:[], status:'Available', billNo:'-'};
   document.getElementById('home').classList.add('hidden');
   document.getElementById('billing').classList.remove('hidden');
   document.getElementById('tableTitle').textContent='Table '+id+' — Billing';
@@ -667,22 +422,16 @@ function openTable(id){
 }
 
 function render(){
-  const tbody=document.getElementById('items');
-  if(!tbody) return;
-  tbody.innerHTML='';
+  const tbody=document.getElementById('items');tbody.innerHTML='';
   let subtotal=0;
+  if(!data[current] || !data[current].items) return;
   
-  if(!data[current]) return;
-  if(!Array.isArray(data[current].items)) data[current].items = [];
-
   data[current].items.forEach((x,i)=>{
-    const amount=x.qty*x.rate;
-    subtotal+=amount;
+    const amount=x.qty*x.rate;subtotal+=amount;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${amount.toFixed(2)}</td><td class="no-print"><button class="btn-sm btn-del" onclick="removeItem(${i})">✕</button></td>`;
+    tr.innerHTML=`<td>${escapeHtml(x.name)}</td><td>${x.qty}</td><td>₹ ${x.rate.toFixed(2)}</td><td>₹ ${amount.toFixed(2)}</td><td class="no-print"><button onclick="removeItem(${i})">✕</button></td>`;
     tbody.appendChild(tr);
   });
-  
   const discountInput=Number(document.getElementById('discount')?.value||0);
   const discountType=document.getElementById('discountType')?.value||'amount';
   const discountValue=discountType==='percent' ? subtotal*discountInput/100 : discountInput;
@@ -691,7 +440,6 @@ function render(){
   const gstRate=Number(document.getElementById('gst')?.value||0);
   const gstValue=taxable*gstRate/100;
   const grand=taxable+gstValue;
-  
   document.getElementById('subtotal').textContent=subtotal.toFixed(2);
   document.getElementById('discountValue').textContent=safeDiscount.toFixed(2);
   document.getElementById('gstValue').textContent=gstValue.toFixed(2);
@@ -699,137 +447,34 @@ function render(){
   document.getElementById('status').textContent=data[current].status;
 }
 
-/* ABSOLUTE FIX: MULTI-ITEM APPEND FUNCTION */
 function addItem(){
-  const nameInput = document.getElementById('item');
-  const qtyInput = document.getElementById('qty');
-  const rateInput = document.getElementById('rate');
-
-  const name = nameInput.value.trim();
-  const qty = Number(qtyInput.value);
-  const rate = Number(rateInput.value);
+  const name=document.getElementById('item').value.trim(),qty=Number(document.getElementById('qty').value),rate=Number(document.getElementById('rate').value);
+  if(!name||qty<=0||rate<0){alert('Item, quantity aur rate sahi bharo.');return}
   
-  if(!name || qty<=0 || rate<0){
-    alert('Item, quantity aur rate sahi bharo.');
-    return;
-  }
-
-  if(!data[current]){
-    data[current] = {items:[], status:'Available', billNo:'-'};
-  }
-  if(!Array.isArray(data[current].items)){
-    data[current].items = [];
-  }
-
-  // Check existing item inside active array
-  let existing = data[current].items.find(x => x.name.toLowerCase() === name.toLowerCase());
-  if(existing){
-    existing.qty += qty;
-  } else {
-    data[current].items.push({name: name, qty: qty, rate: rate, saved: false});
-  }
-
-  if(data[current].status === 'Available'){
-    data[current].status = 'Running';
-  }
-
-  // Save current table state to localStorage immediately so data isn't lost
-  localStorage.setItem('purpleRoomBills', JSON.stringify(data));
-
-  // Render HTML UI Table
-  render();
-  refreshButton(current);
+  if(!data[current]) data[current] = {items:[], status:'Available', billNo:'-'};
   
-  // Clear inputs and set cursor focus back to search
-  nameInput.value = '';
-  qtyInput.value = 1;
-  rateInput.value = 0;
-  document.getElementById('searchResults').style.display = 'none';
-  nameInput.focus();
-}
-
-function saveAndPrintKOT(){
-  if(!data[current] || !data[current].items || !data[current].items.length){
-    alert('KOT ke liye kam se kam 1 item add karein!');
-    return;
-  }
-
-  saveBill();
-
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-IN');
-  const timeStr = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-
-  let kotRows = data[current].items.map((x, idx) => `
-    <tr>
-      <td style="padding:4px 0;border-bottom:1px dashed #000">${idx + 1}</td>
-      <td style="padding:4px 0;border-bottom:1px dashed #000"><b>${escapeHtml(x.name)}</b></td>
-      <td style="padding:4px 0;border-bottom:1px dashed #000;text-align:right"><b>${x.qty}</b></td>
-    </tr>
-  `).join('');
-
-  const kotHtml = `
-    <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:8px">
-      <h2 style="margin:0;font-size:20px">--- KOT ---</h2>
-      <h3 style="margin:4px 0 0;font-size:18px">TABLE: ${current}</h3>
-    </div>
-    <div style="font-size:11px;margin-bottom:8px">
-      <span>Bill No: ${escapeHtml(data[current].billNo)}</span><br>
-      <span>Date: ${dateStr} | Time: ${timeStr}</span><br>
-      <span>Guest: ${escapeHtml(data[current].guest || 'Walk-in')}</span>
-    </div>
-    <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:left">
-      <thead>
-        <tr style="border-bottom:1px solid #000">
-          <th>#</th><th>Item Name</th><th style="text-align:right">Qty</th>
-        </tr>
-      </thead>
-      <tbody>${kotRows}</tbody>
-    </table>
-    <div style="text-align:center;margin-top:15px;font-weight:bold;font-size:12px;border-top:1px dashed #000;padding-top:5px">
-      *** KITCHEN COPY ***
-    </div>
-  `;
-
-  const kotDiv = document.getElementById('kotPrintArea');
-  kotDiv.innerHTML = kotHtml;
-
-  document.body.classList.add('printing-kot');
-  window.print();
-  document.body.classList.remove('printing-kot');
-}
-
-function removeItem(i){
-  const item=data[current].items[i];
-  if(item.saved){
-    pendingAction={type:'removeItem', itemIndex: i};
-    document.getElementById('editPassword').value='';
-    document.getElementById('editModal').classList.remove('hidden');
-    setTimeout(()=>document.getElementById('editPassword').focus(),50);
-  } else {
-    performRemoveItem(i);
-  }
-}
-
-async function performRemoveItem(i){
-  data[current].items.splice(i,1);
-  if(data[current].items.length===0){
-    data[current].status='Available';
-  }
+  data[current].items.push({name,qty,rate});
+  data[current].status='Running';
+  
   localStorage.setItem('purpleRoomBills',JSON.stringify(data));
   refreshButton(current);
   render();
-  if(cloudEnabled) await pushCurrentBillToCloud(current);
+  
+  document.getElementById('item').value='';document.getElementById('qty').value=1;document.getElementById('rate').value=0;document.getElementById('item').focus();
+}
+
+function removeItem(i){
+  data[current].items.splice(i,1);
+  if(data[current].items.length===0) data[current].status = 'Available';
+  localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+  refreshButton(current);
+  render();
 }
 
 function saveBill(){
   if(!data[current] || !data[current].items || !data[current].items.length){
-    alert('Bill me koi item nahi hai!');
-    return;
+    alert('Bill me koi item nahi hai.'); return;
   }
-  
-  data[current].items.forEach(x=>x.saved=true);
-  
   data[current].guest=document.getElementById('guest').value.trim();
   data[current].payment=document.getElementById('payment').value;
   data[current].discount=Number(document.getElementById('discount').value||0);
@@ -838,14 +483,51 @@ function saveBill(){
   data[current].createdAt=data[current].createdAt||new Date().toISOString();
   if(data[current].billNo==='-') data[current].billNo='PR-'+Date.now().toString().slice(-6);
   
-  data[current].status='Running';
-  
   localStorage.setItem('purpleRoomBills',JSON.stringify(data));
   refreshButton(current);
   document.getElementById('billNo').textContent=data[current].billNo;
   document.getElementById('printBillNo').textContent=data[current].billNo;
-  document.getElementById('status').textContent=data[current].status;
   updatePrintDate();
+  alert('Bill saved successfully!');
+}
+
+async function markPaid(){
+  if(!data[current] || !data[current].items || !data[current].items.length){
+    alert('Clear karne ke liye pehle bill me items hone chahiye.'); return;
+  }
+
+  // 1. Prepare completed bill record
+  const finalBill = {
+    tableId: current,
+    guest: document.getElementById('guest').value.trim(),
+    payment: document.getElementById('payment').value,
+    discount: Number(document.getElementById('discount').value||0),
+    discountType: document.getElementById('discountType').value,
+    gst: Number(document.getElementById('gst').value||0),
+    createdAt: data[current].createdAt || new Date().toISOString(),
+    billNo: data[current].billNo !== '-' ? data[current].billNo : 'PR-'+Date.now().toString().slice(-6),
+    items: [...data[current].items],
+    status: 'Paid'
+  };
+
+  // 2. Add to local paid history array
+  paidHistory.push(finalBill);
+  localStorage.setItem('purpleRoomPaidHistory', JSON.stringify(paidHistory));
+
+  // 3. Clear the running table and set status to Paid
+  data[current] = {
+    items: [],
+    status: 'Paid',
+    billNo: '-'
+  };
+  localStorage.setItem('purpleRoomBills', JSON.stringify(data));
+
+  // 4. Update UI buttons and sync to cloud
+  refreshButton(current);
+  const result = await pushCurrentBillToCloud(current);
+
+  alert('Bill Settled! Table ' + current + ' clear ho gayi hai aur STATUS: PAID dikhayega.');
+  goHome();
 }
 
 function clearBill(){
@@ -862,7 +544,9 @@ function clearBill(){
 function goHome(){document.getElementById('billing').classList.add('hidden');document.getElementById('home').classList.remove('hidden')}
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 makeTables();
+renderMenu();
 
+// ===== CLOUD DATABASE =====
 const DEFAULT_CLOUD_URL='https://sgwdrxnlyjpbnojonpgd.supabase.co';
 const DEFAULT_CLOUD_KEY='sb_publishable_53YvwoAlThZUqnzW4xzU1g_AJekyjnk';
 let cloudEnabled=false;
@@ -873,17 +557,14 @@ function getCloudConfig(){
     return {url:(saved.url||DEFAULT_CLOUD_URL).replace(/\/+$/,''),key:saved.key||DEFAULT_CLOUD_KEY};
   }catch(e){ return {url:DEFAULT_CLOUD_URL,key:DEFAULT_CLOUD_KEY}; }
 }
-
 function setCloudStatus(text){
   const st=document.getElementById('cloudStatus');
   if(st) st.textContent=text;
 }
-
 function setCloudMsg(text){
   const m=document.getElementById('cloudMsg');
   if(m) m.textContent=text;
 }
-
 function openCloudSetup(){
   const c=getCloudConfig();
   document.getElementById('sbUrl').value=c.url;
@@ -891,11 +572,9 @@ function openCloudSetup(){
   setCloudMsg('');
   document.getElementById('cloudSetup').style.display='flex';
 }
-
 function cloudHeaders(c){
   return {'apikey':c.key,'Authorization':'Bearer '+c.key,'Content-Type':'application/json','Prefer':'return=representation'};
 }
-
 async function cloudRequest(path, options={}){
   const c=getCloudConfig();
   const res=await fetch(c.url+'/rest/v1/'+path,{
@@ -913,7 +592,6 @@ async function cloudRequest(path, options={}){
   }
   return body;
 }
-
 async function initCloud(showMessage=false){
   try{
     const c=getCloudConfig();
@@ -933,7 +611,6 @@ async function initCloud(showMessage=false){
     return {ok:false,message:e.message};
   }
 }
-
 async function saveCloudConfig(){
   const url=document.getElementById('sbUrl').value.trim().replace(/\/+$/,'');
   const key=document.getElementById('sbKey').value.trim();
@@ -942,7 +619,6 @@ async function saveCloudConfig(){
   const r=await initCloud(true);
   if(r.ok) setTimeout(()=>document.getElementById('cloudSetup').style.display='none',700);
 }
-
 async function pushCurrentBillToCloud(tableId){
   if(!tableId||!data[tableId]) return {ok:false,message:'Table data missing'};
   try{
@@ -979,22 +655,16 @@ async function pushCurrentBillToCloud(tableId){
     return {ok:false,message:e.message};
   }
 }
-
 async function pullCloudData(){
   try{
     const rows=await cloudRequest('bills?select=*&order=updated_at.desc',{method:'GET'});
-    if(Array.isArray(rows)){
-      rows.forEach(r=>{
-        if(r.table_id && r.bill_json) {
-          // If table is active locally with items, don't clear local un-saved items
-          if(!data[r.table_id] || !data[r.table_id].items || data[r.table_id].items.length === 0){
-             data[r.table_id]=r.bill_json;
-          }
-        }
-      });
-      localStorage.setItem('purpleRoomBills',JSON.stringify(data));
-      Object.keys(data).forEach(id=>{if(document.getElementById('btn-'+id)) refreshButton(id);});
-    }
+    (rows||[]).forEach(r=>{
+      if(r.table_id && r.bill_json && (!data[r.table_id] || data[r.table_id].items.length===0)){
+        data[r.table_id]=r.bill_json;
+      }
+    });
+    localStorage.setItem('purpleRoomBills',JSON.stringify(data));
+    Object.keys(data).forEach(id=>{if(document.getElementById('btn-'+id)) refreshButton(id);});
   }catch(e){
     console.error('Cloud pull failed:',e);
   }
@@ -1003,8 +673,12 @@ async function pullCloudData(){
 const originalSaveBill=saveBill;
 saveBill=async function(){
   originalSaveBill();
-  if(!data[current].items.length) return;
   const result=await pushCurrentBillToCloud(current);
+  if(result.ok){
+    alert('✅ Bill local + CLOUD DATABASE me save ho gaya.\nTable: '+current);
+  }else{
+    alert('⚠️ Local bill save ho gaya, CLOUD me nahi hua.\n\nReason:\n'+result.message);
+  }
 };
 
 const originalClearBill=clearBill;
@@ -1016,7 +690,7 @@ clearBill=async function(){
   }
 };
 
-setInterval(()=>{if(cloudEnabled) pullCloudData();},10000);
+setInterval(()=>{if(cloudEnabled) pullCloudData();},5000);
 window.addEventListener('load',()=>setTimeout(()=>initCloud(false),700));
 </script>
 </body>
