@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>THE PURPLE ROOM - Party Billing</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f1f8;color:#222}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f1f8;color:#222;display:flex;flex-direction:column;min-height:100vh}
 header{background:linear-gradient(135deg, #4b176d, #7b1fa2);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 10px rgba(0,0,0,0.15)}
 header h1{margin:0;font-size:25px} header span{font-size:13px;opacity:.85}
-.container{max-width:1200px;margin:20px auto;padding:0 16px}
+.container{max-width:1200px;margin:20px auto;padding:0 16px;flex:1}
 h2{margin:10px 0 14px}.section{background:white;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 3px 12px #00000012}
 .tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
 .table-btn{border:0;border-radius:12px;padding:16px 8px;font-size:17px;font-weight:bold;cursor:pointer;background:#eee;transition:all 0.2s ease}
@@ -56,6 +56,9 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 .btn-edit{background:#0288d1}
 .btn-del{background:#d32f2f}
 
+/* FOOTER STYLES */
+footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14px;font-weight:bold;letter-spacing:0.5px;box-shadow:0 -2px 8px rgba(0,0,0,0.1)}
+
 @media(max-width:750px){
   .grid{grid-template-columns:1fr}
   .row{grid-template-columns:1fr 1fr auto;gap:8px}
@@ -65,7 +68,7 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 
 @media print{
   body{background:#fff;color:#000;font-family:'Courier New',monospace;font-size:12px;margin:0;padding:0}
-  header,.back,.no-print,#cloudSetup,#cloudStatus,button{display:none!important}
+  header,.back,.no-print,#cloudSetup,#cloudStatus,button,footer{display:none!important}
   .container{max-width:100%;margin:0;padding:0}
   .section{box-shadow:none;padding:0;margin:0;border-radius:0}
   .grid{display:block}
@@ -214,11 +217,11 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
 
 <div id="editModal" class="hidden">
   <div class="section edit-box">
-    <h2>🔐 Edit Bill</h2>
-    <p>Bill edit karne ke liye password enter karo.</p>
+    <h2>🔐 Security Verification</h2>
+    <p>Action poora karne ke liye password enter karein.</p>
     <input id="editPassword" type="password" placeholder="Password">
     <div class="actions no-print">
-      <button class="primary" onclick="verifyEdit()">Unlock & Edit</button>
+      <button class="primary" onclick="verifyEdit()">Unlock & Proceed</button>
       <button class="gray" onclick="closeEdit()">Cancel</button>
     </div>
   </div>
@@ -284,6 +287,10 @@ input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px
   </div>
 </div>
 </div>
+
+<footer class="no-print">
+  Developed by @ MR. DEEPANSHU
+</footer>
 
 <script>
 const data=JSON.parse(localStorage.getItem('purpleRoomBills')||'{}');
@@ -485,25 +492,35 @@ function resetAllData(){
 }
 
 const EDIT_PASSWORD='930239';
-let pendingEditTable=null;
+let pendingAction=null; // Stores action type and params
 
 function editBill(id){
-  pendingEditTable=id;
+  pendingAction={type:'edit', tableId: id};
   document.getElementById('editPassword').value='';
   document.getElementById('editModal').classList.remove('hidden');
   setTimeout(()=>document.getElementById('editPassword').focus(),50);
 }
+
 function verifyEdit(){
   if(document.getElementById('editPassword').value!==EDIT_PASSWORD){
-    alert('Wrong password. Bill edit nahi ho sakta.');
+    alert('Wrong password!');
     return;
   }
-  const id=pendingEditTable;
-  closeEdit();
-  openTable(id);
+  if(pendingAction){
+    if(pendingAction.type==='edit'){
+      const id=pendingAction.tableId;
+      closeEdit();
+      openTable(id);
+    } else if(pendingAction.type==='removeItem'){
+      const idx=pendingAction.itemIndex;
+      closeEdit();
+      performRemoveItem(idx);
+    }
+  }
 }
+
 function closeEdit(){
-  pendingEditTable=null;
+  pendingAction=null;
   document.getElementById('editModal').classList.add('hidden');
 }
 
@@ -575,13 +592,26 @@ function render(){
 function addItem(){
   const name=document.getElementById('item').value.trim(),qty=Number(document.getElementById('qty').value),rate=Number(document.getElementById('rate').value);
   if(!name||qty<=0||rate<0){alert('Item, quantity aur rate sahi bharo.');return}
-  data[current].items.push({name,qty,rate});
+  data[current].items.push({name,qty,rate,saved:false});
   data[current].status='Running';
   localStorage.setItem('purpleRoomBills',JSON.stringify(data));
   refreshButton(current);render();
   document.getElementById('item').value='';document.getElementById('qty').value=1;document.getElementById('rate').value=0;document.getElementById('item').focus();
 }
+
 function removeItem(i){
+  const item=data[current].items[i];
+  if(item.saved){
+    pendingAction={type:'removeItem', itemIndex: i};
+    document.getElementById('editPassword').value='';
+    document.getElementById('editModal').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('editPassword').focus(),50);
+  } else {
+    performRemoveItem(i);
+  }
+}
+
+async function performRemoveItem(i){
   data[current].items.splice(i,1);
   if(data[current].items.length===0){
     data[current].status='Available';
@@ -589,6 +619,7 @@ function removeItem(i){
   localStorage.setItem('purpleRoomBills',JSON.stringify(data));
   refreshButton(current);
   render();
+  if(cloudEnabled) await pushCurrentBillToCloud(current);
 }
 
 function saveBill(){
@@ -596,6 +627,9 @@ function saveBill(){
     alert('Bill me koi item nahi hai!');
     return;
   }
+  
+  data[current].items.forEach(x=>x.saved=true);
+  
   data[current].guest=document.getElementById('guest').value.trim();
   data[current].payment=document.getElementById('payment').value;
   data[current].discount=Number(document.getElementById('discount').value||0);
