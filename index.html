@@ -1,19 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE PURPLE ROOM - Party Billing</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f1f8;color:#222;display:flex;flex-direction:column;min-height:100vh}
+header{background:linear-gradient(135deg, #4b176d, #7b1fa2);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 10px rgba(0,0,0,0.15);position:relative}
+header h1{margin:0;font-size:25px} header span{font-size:13px;opacity:.85}
+
+.menu-btn{background:transparent;border:none;color:#fff;font-size:26px;cursor:pointer;padding:0 10px;margin-right:10px;display:flex;align-items:center}
+.sidebar{position:fixed;top:0;left:-280px;width:280px;height:100%;background:#33104a;box-shadow:4px 0 15px rgba(0,0,0,0.3);z-index:10001;transition:left 0.3s ease;padding:20px 15px;display:flex;flex-direction:column}
+.sidebar.active{left:0}
+.sidebar-header{display:flex;justify-content:space-between;align-items:center;color:#fff;border-bottom:1px solid #522075;padding-bottom:15px;margin-bottom:20px}
+.sidebar-header h3{margin:0;font-size:20px}
+.close-sidebar{background:none;border:none;color:#fff;font-size:24px;cursor:pointer}
+.sidebar-menu{display:flex;flex-direction:column;gap:12px}
+.sidebar-menu button{width:100%;text-align:left;border:0;border-radius:8px;padding:12px 16px;cursor:pointer;font-weight:bold;font-size:15px;transition:all 0.2s ease;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
+.sidebar-menu button:hover{transform:translateX(5px);opacity:0.95}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:none}
+.overlay.active{display:block}
+
+.container{max-width:1200px;margin:20px auto;padding:0 16px;flex:1}
+h2{margin:10px 0 14px}.section{background:white;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 3px 12px #00000012}
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.table-btn{border:0;border-radius:12px;padding:16px 8px;font-size:17px;font-weight:bold;cursor:pointer;background:#eee;transition:all 0.2s ease}
+.table-btn:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,0.15)}
+.table-btn.premium{border-left:5px solid #7b1fa2;background:#f3e5f5;color:#4b176d}
+.table-btn.standard{border-left:5px solid #1976d2;background:#e3f2fd;color:#0d47a1}
+.table-btn.running{background:#fff3e0;border-left-color:#ff9800;color:#e65100}
+.small{font-size:12px;font-weight:normal;display:block;margin-top:5px}
+.hidden{display:none}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+input,select,button{font:inherit}input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px}
+
+.row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.search-wrapper{position:relative;width:100%;grid-column:span 4}
+.search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid #7b1fa2;border-radius:8px;max-height:180px;overflow-y:auto;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:none}
+.search-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #eee;display:flex;justify-content:space-between;font-size:14px}
+.search-item:last-child{border-bottom:none}
+.search-item:hover, .search-item.selected{background:#f0e6f6;color:#4b176d;font-weight:bold}
+
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.actions button, .btn-action{border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:bold;transition:all 0.2s ease;box-shadow:0 2px 5px rgba(0,0,0,0.12)}
+.actions button:hover, .btn-action:hover{transform:scale(1.02);opacity:0.95}
+
+.btn-report{background:linear-gradient(135deg, #1e88e5, #1565c0);color:#fff}
+.btn-closing{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
+.btn-item-master{background:linear-gradient(135deg, #e91e63, #ad1457);color:#fff}
+.btn-reset{background:linear-gradient(135deg, #ff9800, #f57c00);color:#fff}
+.btn-kot{background:linear-gradient(135deg, #d81b60, #8e24aa);color:#fff}
+.settle{background:linear-gradient(135deg,#00897b,#00695c);color:#fff}
+.settle-box{width:min(560px,94vw);max-height:90vh;overflow:auto;margin:0}
+.settle-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.settle-summary{background:#faf7fc;border:1px solid #e5dcef;border-radius:10px;padding:12px;margin:12px 0}
+.settle-total{font-size:24px;font-weight:bold;text-align:right;color:#2e7d32;margin-top:10px}
+@media(max-width:600px){.settle-grid{grid-template-columns:1fr}}
+
+.primary{background:linear-gradient(135deg, #6a1b9a, #4a148c);color:#fff}
+.green{background:linear-gradient(135deg, #2e7d32, #1b5e20);color:#fff}
+.gray{background:linear-gradient(135deg, #78909c, #455a64);color:#fff}
+.blue{background:linear-gradient(135deg, #0288d1, #01579b);color:#fff}
+.add{background:linear-gradient(135deg, #009688, #00695c);color:white;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;font-weight:bold}
+
+.bill{border-collapse:collapse;width:100%;margin-top:12px}.bill th,.bill td{border-bottom:1px solid #ddd;padding:9px;text-align:left}
+.total{text-align:right;font-size:22px;font-weight:bold;margin-top:15px;color:#2e7d32}
+.back{margin-bottom:12px}
+
+.item-manage-list{margin-top:15px;max-height:250px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;padding:8px;background:#fafafa}
+.item-manage-row{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee;background:#fff;margin-bottom:4px;border-radius:6px}
+.item-manage-row:last-child{border-bottom:none;margin-bottom:0}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px;border:none;cursor:pointer;margin-left:4px;font-weight:bold;color:#fff}
+.btn-edit{background:#0288d1}
+.btn-del{background:#d32f2f}
+
+footer{background:#33104a;color:#fff;text-align:center;padding:12px;font-size:14px;font-weight:bold;letter-spacing:0.5px;box-shadow:0 -2px 8px rgba(0,0,0,0.1)}
+
+@media(max-width:750px){
+  .grid{grid-template-columns:1fr}
+  .row{grid-template-columns:1fr 1fr auto;gap:8px}
+  .search-wrapper{grid-column:span 3}
+  header{padding:15px}.section{padding:13px}
+}
+
+#kotPrintArea{display:none}
+
+@media print{
+  body{background:#fff;color:#000;font-family:'Courier New',monospace;font-size:12px;margin:0;padding:0}
+  header,.back,.no-print,#cloudSetup,#cloudStatus,button,footer,.sidebar,.overlay,#loginModal{display:none!important}
+  .container{max-width:100%;margin:0;padding:0}
+  .section{box-shadow:none;padding:0;margin:0;border-radius:0}
+  .grid{display:block}
+  .print-head{border-bottom:1px dashed #000;padding-bottom:5px;margin-bottom:8px;text-align:center}
+  .print-head h2{font-size:18px;color:#000;margin:0}
+  .print-meta{font-size:10px;margin-top:5px;display:block;text-align:left}
+  .bill th, .bill td{padding:4px 0;font-size:11px;border-bottom:1px dashed #ccc}
+  .total{font-size:16px;text-align:right;margin-top:10px;border-top:1px solid #000;padding-top:5px}
+  @page{size:80mm auto;margin:2mm}
+
+  body.printing-kot .container, body.printing-kot header, body.printing-kot footer{display:none!important}
+  body.printing-kot #kotPrintArea{display:block!important;padding:5px}
+}
+
+.hint{color:#666;font-size:13px;margin-top:-5px}
+.charge-row{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:center}
+
+.print-head{text-align:center;border-bottom:2px solid #4b176d;padding-bottom:10px;margin-bottom:12px}
+.print-head h2{margin:0;color:#4b176d;font-size:24px}.print-head>div{margin-top:4px}
+.print-meta{display:flex;justify-content:space-between;font-size:12px;margin-top:10px}
+@media screen{.print-head{background:#faf7fc;padding:12px;border-radius:10px}}
+
+.report-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:15px 0}
+.report-cards>div{background:#faf7fc;border:1px solid #e5dcef;border-radius:10px;padding:14px;text-align:center}
+.report-cards span{display:block;color:#666;font-size:12px;margin-bottom:6px}.report-cards b{font-size:20px;color:#4b176d}
+@media(max-width:750px){.report-cards{grid-template-columns:repeat(2,1fr)}}
+
+#loginModal{position:fixed;inset:0;background:rgba(30,10,50,0.85);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;z-index:20000}
+#loginModal.hidden{display:none}
+.login-box{background:#fff;width:min(400px,90vw);border-radius:16px;padding:30px;box-shadow:0 15px 35px rgba(0,0,0,0.3);text-align:center}
+.login-box h2{color:#4b176d;margin-top:0;margin-bottom:8px}
+.login-box p{color:#666;font-size:13px;margin-bottom:20px}
+.login-box label{display:block;text-align:left;font-weight:bold;font-size:13px;margin-bottom:6px;color:#333}
+.login-box input{margin-bottom:16px}
+.login-error{color:#d32f2f;font-size:13px;margin-bottom:12px;min-height:18px;font-weight:bold}
+
+.table-btn .amount{font-size:12px;margin-top:4px;display:block;color:#333}
+</style>
+</head>
+<body>
+
+<!-- Login Panel Modal -->
+<div id="loginModal">
+  <div class="login-box">
+    <h2>🟣 THE PURPLE ROOM</h2>
+    <p>Please login to access the billing system</p>
+    <label>Username</label>
+    <input id="loginUser" placeholder="Enter Username" autocomplete="off">
+    <label>Password</label>
+    <input id="loginPass" type="password" placeholder="Enter Password" onkeydown="handleLoginKey(event)">
+    <div id="loginError" class="login-error"></div>
+    <button class="primary" style="width:100%;padding:12px;font-size:16px;border-radius:8px" onclick="checkLogin()">Login System</button>
+  </div>
+</div>
+
+<div id="kotPrintArea"></div>
+
+<div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3>Menu Options</h3>
+    <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+  </div>
+  <div class="sidebar-menu">
+    <button class="btn-report" onclick="showReports(); toggleSidebar();">📊 Daily Report</button>
+    <button class="btn-closing" onclick="showClosing(); toggleSidebar();">🔒 Party Closing</button>
+    <button class="btn-item-master" onclick="showItemMaster(); toggleSidebar();">🍽️ Item Master</button>
+    <button class="btn-reset" onclick="resetAllData(); toggleSidebar();">↺ Reset Demo Data</button>
+  </div>
+</div>
+
+<div id="cloudSetup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;max-width:520px;width:100%;border-radius:14px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+    <h2 style="margin-top:0">☁️ Cloud Database Setup</h2>
+    <p style="color:#555">Laptop aur mobile me same bills dikhane ke liye Supabase database connect karo.</p>
+    <label>Supabase Project URL</label>
+    <input id="sbUrl" style="width:100%;padding:10px;margin:6px 0 12px" placeholder="https://xxxx.supabase.co">
+    <label>Supabase Anon Key</label>
+    <input id="sbKey" style="width:100%;padding:10px;margin:6px 0 12px" placeholder="eyJ...">
+    <div style="display:flex;gap:10px">
+      <button onclick="saveCloudConfig()" class="primary" style="padding:10px 14px">Save & Connect</button>
+      <button onclick="initCloud(true)" class="blue" style="padding:10px 14px">Test Connection</button>
+      <button onclick="document.getElementById('cloudSetup').style.display='none'" class="gray" style="padding:10px 14px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div style="position:fixed;right:14px;top:14px;z-index:1000">
+  <button onclick="openCloudSetup()" style="padding:8px 12px;border-radius:8px;border:none;background:linear-gradient(135deg, #0288d1, #01579b);color:#fff;font-weight:bold;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2)">☁️ Cloud DB</button>
+</div>
+
+<header>
+  <div style="display:flex;align-items:center;">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <h1>THE PURPLE ROOM</h1>
+  </div>
+  <span>Party Billing System</span>
+</header>
+
+<div class="container">
+<div id="home">
+  <div class="section">
+    <h2>🟣 Premium Guest — R1 to R8</h2>
+    <div id="premium" class="tables"></div>
+  </div>
+  <div class="section">
+    <h2>🔵 Standard Guest — S1 to S20</h2>
+    <div id="standard" class="tables"></div>
+  </div>
+</div>
+
+<div id="itemMasterView" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideItemMaster()">← Back to Tables</button>
+    <h2>🍽️ Item Master (Manage Menu Items)</h2>
+    <p class="hint">Naye item add karein ya purane items ka name aur rate update/delete karein.</p>
+    <div class="row no-print" style="grid-template-columns:1fr 1fr auto">
+      <input id="newItemName" placeholder="Item Name (e.g. Paneer Tikka)">
+      <input id="newItemRate" type="number" min="0" placeholder="Rate (₹)">
+      <button class="add" onclick="addMenuItem()">+ Add / Update Item</button>
+    </div>
+    
+    <h3 style="margin-top:20px;">📋 Existing Items List</h3>
+    <div id="menuManageList" class="item-manage-list"></div>
+  </div>
+</div>
+
+<div id="reports" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideReports()">← Back to Tables</button>
+    <h2>📊 Daily Sales Report</h2>
+    <div class="report-cards">
+      <div><span>Total Bills</span><b id="rBills">0</b></div>
+      <div><span>Total Sales</span><b>₹ <span id="rSales">0.00</span></b></div>
+      <div><span>Cash</span><b>₹ <span id="rCash">0.00</span></b></div>
+      <div><span>UPI</span><b>₹ <span id="rUpi">0.00</span></b></div>
+      <div><span>Card</span><b>₹ <span id="rCard">0.00</span></b></div>
+    </div>
+    <div class="actions no-print">
+      <button class="blue" onclick="showItemWiseReport()">📦 Item-wise Sales Report</button>
+    </div>
+    <div id="itemWiseReport" class="hidden">
+      <h3>📦 Item-wise Sales</h3>
+      <table class="bill">
+        <thead><tr><th>Item</th><th>Qty Sold</th><th>Sales Amount</th></tr></thead>
+        <tbody id="itemWiseRows"></tbody>
+      </table>
+    </div>
+    <h3>Bill List</h3>
+    <table class="bill">
+      <thead><tr><th>Bill No</th><th>Table</th><th>Guest</th><th>Payment</th><th>Total</th><th class="no-print">Action</th></tr></thead>
+      <tbody id="reportRows"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="closing" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideClosing()">← Back to Tables</button>
+    <h2>🔒 Party Closing Report</h2>
+    <p>Payment aur table-wise final collection ka summary.</p>
+    <div class="report-cards">
+      <div><span>Total Bills</span><b id="cBills">0</b></div>
+      <div><span>Total Sales</span><b>₹ <span id="cSales">0.00</span></b></div>
+      <div><span>Cash</span><b>₹ <span id="cCash">0.00</span></b></div>
+      <div><span>UPI</span><b>₹ <span id="cUpi">0.00</span></b></div>
+      <div><span>Card</span><b>₹ <span id="cCard">0.00</span></b></div>
+    </div>
+    <div class="actions no-print">
+      <button class="blue" onclick="showClosingItemWiseReport()">📦 Item-wise Sale Report</button>
+      <button class="primary" onclick="exportClosingItemWiseExcel()">📥 Download Excel</button>
+    </div>
+    <div id="closingItemWiseReport" class="hidden">
+      <h3>📦 Item-wise Sale Report</h3>
+      <table class="bill">
+        <thead><tr><th>Item</th><th>Qty Sold</th><th>Sales Amount</th></tr></thead>
+        <tbody id="closingItemWiseRows"></tbody>
+      </table>
+    </div>
+    <table class="bill">
+      <thead><tr><th>Table</th><th>Bill No</th><th>Payment</th><th>Total</th><th class="no-print">Action</th></tr></thead>
+      <tbody id="closingRows"></tbody>
+    </table>
+    <div class="actions no-print"><button class="primary" onclick="window.print()">🖨 Print Closing Report</button></div>
+  </div>
+</div>
+
+<div id="billDetail" class="hidden">
+  <div class="section">
+    <button class="back gray no-print" onclick="hideBillDetail()">← Back</button>
+    <div id="detailContent"></div>
+    <div class="actions no-print">
+      <button class="primary" onclick="window.print()">🖨 Reprint Bill</button>
+      <button class="gray" onclick="hideBillDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="settleModal" class="hidden" style="position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:10000">
+  <div class="section settle-box">
+    <button class="back gray no-print" onclick="closeSettle()">← Back</button>
+    <h2>💰 Settle & Print</h2>
+    <p><b>Table:</b> <span id="settleTable">-</span> &nbsp; <b>Bill:</b> <span id="settleBillNo">-</span></p>
+    <div class="settle-summary">
+      <p><b>Subtotal:</b> ₹ <span id="settleSubtotal">0.00</span></p>
+      <div class="settle-grid">
+        <div><label>Discount</label><input id="settleDiscount" type="number" min="0" value="0" oninput="renderSettle()"></div>
+        <div><label>Discount Type</label><select id="settleDiscountType" onchange="renderSettle()"><option value="amount">₹ Amount</option><option value="percent">% Percent</option></select></div>
+        <div><label>GST %</label><input id="settleGst" type="number" min="0" value="0" oninput="renderSettle()"></div>
+        <div><label>Amount Adjustment (₹)</label><input id="settleAdjustment" type="number" value="0" oninput="renderSettle()" placeholder="+ / - amount"></div>
+      </div>
+      <p><b>Discount:</b> ₹ <span id="settleDiscountValue">0.00</span></p>
+      <p><b>GST:</b> ₹ <span id="settleGstValue">0.00</span></p>
+      <p><b>Adjustment:</b> ₹ <span id="settleAdjustmentValue">0.00</span></p>
+      <div class="settle-total">Final Payable: ₹ <span id="settleFinalTotal">0.00</span></div>
+    </div>
+    <label>Payment Mode</label>
+    <select id="settlePayment"><option>Cash</option><option>UPI</option><option>Card</option></select>
+    <br><br>
+    <label>Guest / Party Name</label>
+    <input id="settleGuest" placeholder="Name">
+    <div class="actions no-print">
+      <button class="settle" onclick="settleBill(false)">✅ Settle Bill</button>
+      <button class="primary" onclick="settleBill(true)">🖨 Settle & Print</button>
+      <button class="gray" onclick="closeSettle()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="billing" class="hidden">
+  <button class="back gray" onclick="goHome()">← Back to Tables</button>
+  <div class="grid">
+    <div class="section">
+      <div class="print-head">
+        <h2>THE PURPLE ROOM</h2>
+        <div>PARTY BILL / RECEIPT</div>
+        <div class="print-meta">
+          <span>Bill No: <b id="printBillNo">-</b></span><br>
+          <span>Date: <b id="printDate">-</b> | Time: <b id="printTime">-</b></span>
+        </div>
+      </div>
+      <h2 id="tableTitle"></h2>
+      
+      <div class="row no-print">
+        <div class="search-wrapper">
+          <input id="item" placeholder="🔍 Search & Add Item..." oninput="searchItems()" onfocus="searchItems()" onkeydown="handleSearchKey(event)" autocomplete="off">
+          <div id="searchResults" class="search-results"></div>
+        </div>
+        <input id="qty" type="number" min="1" value="1" placeholder="Qty">
+        <input id="rate" type="number" min="0" value="0" placeholder="Rate" readonly>
+        <button class="add" onclick="addItem()">+ Add Item</button>
+      </div>
+
+      <table class="bill">
+        <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th class="no-print"></th></tr></thead>
+        <tbody id="items"></tbody>
+      </table>
+      <div class="total">Grand Total: ₹ <span id="total">0.00</span></div>
+      <div class="actions no-print">
+        <button class="btn-kot" onclick="saveAndPrintKOT()">🍳 Save & KOT Print</button>
+        <button class="settle" onclick="openSettle()">💰 Settle & Print</button>
+        <button class="btn-reset" style="padding:11px 16px" onclick="clearBill()">Clear Bill</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Payment Info</h2>
+      <label>Payment Mode</label>
+      <select id="payment"><option>Cash</option><option>UPI</option><option>Card</option></select>
+      <br><br>
+      <label>Guest / Party Name (optional)</label>
+      <input id="guest" placeholder="Name">
+      <br><br>
+      <label>Discount</label>
+      <div class="charge-row"><input id="discount" type="number" min="0" value="0" oninput="render()"><select id="discountType" onchange="render()"><option value="amount">₹ Amount</option><option value="percent">% Percent</option></select></div>
+      <br>
+      <label>GST</label>
+      <div class="charge-row"><input id="gst" type="number" min="0" value="0" oninput="render()"><span>%</span></div>
+      <br>
+      <p><b>Subtotal:</b> ₹ <span id="subtotal">0.00</span></p>
+      <p><b>Discount:</b> ₹ <span id="discountValue">0.00</span></p>
+      <p><b>GST:</b> ₹ <span id="gstValue">0.00</span></p>
+      <p><b>Status:</b> <span id="status">Available</span></p>
+      <p><b>Bill No:</b> <span id="billNo">-</span></p>
+    </div>
+  </div>
+</div>
+</div>
+
+<footer class="no-print">
+  Developed by @ MR. DEEPANSHU
+</footer>
+
 <script>
-// --- GLOBAL VARIABLES & LOCALSTORAGE ---
-let data = JSON.parse(localStorage.getItem('purpleRoomBills') || '{}'); // Active Running Tables
-let settledBills = JSON.parse(localStorage.getItem('purpleRoomSettledBills') || '[]'); // Final Settled Bills for Reports
+let data = JSON.parse(localStorage.getItem('purpleRoomBills') || '{}');
+let settledBills = JSON.parse(localStorage.getItem('purpleRoomSettledBills') || '[]');
 let menu = JSON.parse(localStorage.getItem('purpleRoomMenu') || 'null') || [
   {name:'Tea', rate:30},
   {name:'Coffee', rate:50},
   {name:'Water Bottle', rate:30}
 ];
 
-let current = null; // Currently open table ID
+let current = null;
 let selectedSearchIndex = -1;
 let currentDetailSettledIndex = null;
-let editingSettledIndex = null;
 
-// --- INITIALIZATION ---
 window.onload = function() {
   renderTables();
 };
@@ -44,7 +426,6 @@ function toggleSidebar(){
   document.getElementById('overlay').classList.toggle('active');
 }
 
-// --- TABLE MANAGEMENT ---
 function renderTables(){
   const premDiv = document.getElementById('premium');
   const stdDiv = document.getElementById('standard');
@@ -53,13 +434,11 @@ function renderTables(){
   premDiv.innerHTML = '';
   stdDiv.innerHTML = '';
 
-  // Premium Tables R1 to R8
   for(let i=1; i<=8; i++){
     const tId = 'R' + i;
     premDiv.appendChild(createTableButton(tId, 'premium'));
   }
 
-  // Standard Tables S1 to S20
   for(let i=1; i<=20; i++){
     const tId = 'S' + i;
     stdDiv.appendChild(createTableButton(tId, 'standard'));
@@ -105,7 +484,6 @@ function openTable(tId){
   document.getElementById('home').classList.add('hidden');
   document.getElementById('billing').classList.remove('hidden');
   
-  // Set values from current table state
   document.getElementById('payment').value = data[current].payment || 'Cash';
   document.getElementById('guest').value = data[current].guest || '';
   document.getElementById('discount').value = data[current].discount || 0;
@@ -126,7 +504,6 @@ function goHome(){
   renderTables();
 }
 
-// --- BILLING & ITEM HANDLING ---
 function addItem(){
   const name = document.getElementById('item').value.trim();
   const qty = Number(document.getElementById('qty').value);
@@ -146,7 +523,6 @@ function addItem(){
     data[current].items.push({name, qty, rate});
   }
 
-  // Reset inputs
   document.getElementById('item').value = '';
   document.getElementById('qty').value = 1;
   document.getElementById('rate').value = 0;
@@ -221,14 +597,13 @@ function clearBill(){
   }
 }
 
-// --- KOT PRINT (SAVES TEMPORARILY TO RUNNING TABLE ONLY) ---
 function saveAndPrintKOT(){
   if(!data[current] || data[current].items.length === 0){
     alert('Bill me koi item nahi hai!');
     return;
   }
 
-  saveRunningData(); // Save to local running data only
+  saveRunningData();
   
   const printArea = document.getElementById('kotPrintArea');
   const now = new Date();
@@ -261,7 +636,6 @@ function saveAndPrintKOT(){
   document.body.classList.remove('printing-kot');
 }
 
-// --- SETTLE BILL (PERMANENTLY SAVES TO REPORTS) ---
 function openSettle(){
   if(!data[current] || data[current].items.length === 0){
     alert('Settle karne ke liye bill me items hone chahiye!');
@@ -339,11 +713,9 @@ function settleBill(shouldPrint){
     settledAt: new Date().toISOString()
   };
 
-  // Push into permanent Settled Bills Array
   settledBills.push(settledRecord);
   localStorage.setItem('purpleRoomSettledBills', JSON.stringify(settledBills));
 
-  // Clear running table data
   delete data[current];
   saveRunningData();
 
@@ -357,7 +729,6 @@ function settleBill(shouldPrint){
   goHome();
 }
 
-// --- ITEM MASTER MANAGEMENT ---
 function saveMenu(){
   localStorage.setItem('purpleRoomMenu', JSON.stringify(menu));
   renderManageList();
@@ -437,7 +808,6 @@ function deleteMenuItem(index){
   }
 }
 
-// --- SEARCH AUTOCOMPLETE ---
 function searchItems(){
   const input = document.getElementById('item');
   const filter = input.value.toLowerCase().trim();
@@ -533,7 +903,6 @@ function calculateTotal(t){
   return (subtotal - discount) + ((subtotal - discount) * Number(t.gst || 0) / 100);
 }
 
-// --- DAILY REPORTS & ITEM-WISE REPORTS ---
 function showReports(){
   document.getElementById('home').classList.add('hidden');
   document.getElementById('reports').classList.remove('hidden');
@@ -611,7 +980,6 @@ function showItemWiseReport(){
   }
 }
 
-// --- PARTY CLOSING & EXCEL EXPORT ---
 function showClosing(){
   document.getElementById('home').classList.add('hidden');
   document.getElementById('closing').classList.remove('hidden');
@@ -713,7 +1081,6 @@ function exportClosingItemWiseExcel(){
   a.click();
 }
 
-// --- VIEW SETTLED BILL DETAILS ---
 function viewSettledBill(idx){
   const bill = settledBills[idx];
   if(!bill) return;
@@ -756,7 +1123,6 @@ function hideBillDetail(){
   document.getElementById('home').classList.remove('hidden');
 }
 
-// --- RESET DEMO DATA ---
 function resetAllData(){
   if(confirm('Kya aap saara bill aur sales data clear karna chahte hain? (Menu reset nahi hoga)')){
     localStorage.removeItem('purpleRoomBills');
@@ -768,7 +1134,6 @@ function resetAllData(){
   }
 }
 
-// --- CLOUD SETUP PLACEHOLDERS ---
 function openCloudSetup(){
   document.getElementById('cloudSetup').style.display = 'flex';
 }
@@ -780,3 +1145,5 @@ function initCloud(test = false){
   if(test) alert('Local storage mode active.');
 }
 </script>
+</body>
+</html>
